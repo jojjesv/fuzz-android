@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:clipToPadding="false"
+    android:clipChildren="false"
+    style="@style/ButtonContainer">
+
+    <TextView
+        android:id="@+id/accept_text"
+        style="@style/ButtonContainerText"
+        android:text="Cancel" />
+</LinearLayout>

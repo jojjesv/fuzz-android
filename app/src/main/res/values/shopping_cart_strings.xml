@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="billing_address">Adress</string>
+    <string name="door_code">Portkod</string>
+    <string name="floor">Våning</string>
+    <string name="house_number">Husnmr.</string>
+    <string name="message">Meddelande</string>
+    <string name="delivery_info">Leveransinfo</string>
+    <string name="payment_method">Betalningsmetod</string>
+    <string name="payment_option_card">Kort</string>
+    <string name="payment_option_cash">Kontant</string>
+    <string name="payment_option_swish">Swish</string>
+    <string name="place_order">Placera da order</string>
+    <string name="cost_add_articles">Kundvagn</string>
+    <string name="cost_add_below_min">Mellanskillnad (minst %skr)</string>
+    <string name="cost_add_appendage">\u0020%skr</string>
+    <string name="total_cost">Summa</string>
+    <string name="card_number">Kortnummer</string>
+    <string name="card_expiration">Utgångsdatum</string>
+    <string name="card_cvc">CVC-kod</string>
+    <string name="cash_subheading">Var beredd med kontanter</string>
+    <string name="swish_recipient">Telefonnummer</string>
+    <string name="open_swish_app">Öppna Swish-appen</string>
+    <string name="swish_app_not_found">Swish appen hittades inte</string>
+    <string name="something_wrong">Något gick fel</string>
+</resources>

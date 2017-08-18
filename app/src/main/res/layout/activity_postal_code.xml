@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#90e0d9"
+    android:clipChildren="false"
+    android:orientation="vertical">
+
+    <!-- Background circle-->
+    <com.fuzz.android.view.AnimatedBackgroundCircle
+        android:layout_width="450dp"
+        android:layout_height="450dp"
+        android:background="@drawable/circle"
+        android:backgroundTint="#e87988"
+        android:translationX="-54dp"
+        android:translationY="-64dp"
+        app:translation_duration="45000"
+        app:translation_x_to="-10dp"
+        app:translation_y_to="-16dp" />
+
+    <com.fuzz.android.view.AnimatedBackgroundCircle
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:layout_gravity="bottom|right"
+        android:background="@drawable/circle"
+        android:backgroundTint="#bcece8"
+        android:translationX="20dp"
+        android:translationY="40dp"
+        app:translation_duration="60000"
+        app:translation_x_to="-120dp"
+        app:translation_y_to="-10dp" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="64dp"
+        android:orientation="vertical">
+
+        <com.fuzz.android.view.HeaderTextView
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/welcome"
+            android:textColor="@color/white"
+            android:textSize="48sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/header"
+            android:layout_marginTop="24dp"
+            android:gravity="center"
+            android:text="@string/input_postal_code"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/text_input"
+        style="@style/EditText"
+        android:layout_width="240dp"
+        android:layout_height="80dp"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:inputType="number"
+        android:maxLength="5"
+        android:maxLines="1"
+        android:singleLine="true"
+        android:text="35250"
+        android:textSize="28sp" />
+
+    <LinearLayout
+        style="@style/ButtonContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center|bottom"
+        android:layout_marginBottom="64dp"
+        android:onClick="submitPostalCode">
+
+        <ImageView
+            style="@style/ButtonContainerIcon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:src="@drawable/ic_continue" />
+
+        <TextView
+            style="@style/ButtonContainerText"
+            android:text="@string/_continue"
+            android:textColor="@color/white" />
+    </LinearLayout>
+
+</FrameLayout>

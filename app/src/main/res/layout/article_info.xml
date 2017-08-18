@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:clickable="true"
+    android:minHeight="@dimen/dialog_height"
+    android:minWidth="@dimen/dialog_width"
+    android:orientation="vertical"
+    android:paddingBottom="@dimen/activity_padding_vertical"
+    android:paddingLeft="@dimen/activity_padding_horizontal"
+    android:paddingRight="@dimen/activity_padding_horizontal"
+    android:paddingTop="@dimen/activity_padding_vertical">
+
+    <ImageView
+        android:id="@+id/image"
+        android:layout_width="@dimen/article_image_size_large"
+        android:layout_height="@dimen/article_image_size_large"
+        android:layout_gravity="center"
+
+        android:clickable="false" />
+
+    <TextView
+        android:id="@+id/article_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="false"
+        android:gravity="center"
+        android:text="Artikelnamn"
+        android:textSize="17sp" />
+
+    <TextView
+        android:id="@+id/description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:clickable="false"
+        android:text="Bra för det och det" />
+
+    <com.fuzz.android.view.HeaderTextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="12dp"
+        android:clickable="false"
+        android:textColor="@color/white"
+        android:text="@string/article_content"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/contents"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="false"
+        android:layout_marginTop="4dp"
+        android:text="Innehåller gluten, E213, och det" />
+
+</LinearLayout>

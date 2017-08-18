@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.fuzz.android.activity.MainActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/action_bar_height"
+            android:background="@color/primary"
+            android:clipChildren="false">
+
+
+            <FrameLayout
+                android:layout_width="@dimen/action_bar_btn_size"
+                android:layout_height="@dimen/action_bar_btn_size"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
+                android:clickable="true"
+                android:onClick="showShoppingCart">
+
+                <!-- Background needs to be scaled programatically -->
+                <View
+                    android:id="@+id/article_info_btn_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:alpha="0"
+                    android:background="@drawable/action_bar_btn_bg"
+                    android:scaleX="0.25"
+                    android:scaleY="0.25" />
+
+                <ImageView
+                    android:id="@+id/article_info_button"
+                    android:layout_width="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_info" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/article_info_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentLeft="true"
+                android:background="@drawable/note_info"
+                android:paddingBottom="8dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="8dp"
+                android:text="@string/drag_to_info"
+                android:textColor="@color/white"
+                android:translationX="48dp"
+                android:translationY="24dp"
+                android:visibility="gone" />
+
+
+            <FrameLayout
+                android:layout_width="@dimen/action_bar_btn_size"
+                android:layout_height="@dimen/action_bar_btn_size"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:layout_marginRight="@dimen/activity_horizontal_margin"
+                android:clickable="true"
+                android:onClick="showShoppingCart">
+
+                <!-- Background needs to be scaled programatically -->
+                <View
+                    android:id="@+id/shopping_cart_btn_bg"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:alpha="0"
+                    android:background="@drawable/action_bar_btn_bg"
+                    android:scaleX="0.25"
+                    android:scaleY="0.25"
+                    android:visibility="gone" />
+
+                <ImageView
+                    android:id="@+id/shopping_cart_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@drawable/ic_cart" />
+
+            </FrameLayout>
+
+            <!-- Cart cost -->
+            <TextView
+                android:id="@+id/cart_cost"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/cart_cost_bg"
+                android:paddingBottom="3dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="3dp"
+                android:text="@string/cart_cost_appendage"
+                android:textColor="@color/white"
+                android:visibility="gone"
+                android:translationX="-42dp"
+                android:translationY="48dp" />
+
+            <TextView
+                android:id="@+id/shopping_cart_note"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/note_cart"
+                android:paddingBottom="8dp"
+                android:paddingLeft="12dp"
+                android:paddingRight="12dp"
+                android:paddingTop="8dp"
+                android:text="@string/drag_to_cart"
+                android:textColor="@color/white"
+                android:translationX="-48dp"
+                android:translationY="56dp"
+                android:visibility="gone" />
+
+        </RelativeLayout>
+
+        <com.fuzz.android.view.ArticlesContainerView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical">
+
+                <com.fuzz.android.view.HeaderTextView
+                    android:id="@+id/popular_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="24dp"
+                    android:gravity="center"
+                    android:text="@string/popular"
+                    android:textSize="36sp" />
+
+                <com.fuzz.android.view.HeaderTextView
+                    android:id="@+id/current_categories"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/this_week"
+                    android:textSize="24sp" />
+
+                <com.fuzz.android.view.ArticlesView
+                    android:id="@+id/articles"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="24dp"
+                    android:clickable="true" />
+            </LinearLayout>
+
+            <!-- Categories -->
+            <com.fuzz.android.view.CategoriesView
+                android:id="@+id/categories"
+                android:layout_width="240dp"
+                android:layout_height="match_parent"
+                android:divider="@null"
+                android:scrollbars="none" />
+        </com.fuzz.android.view.ArticlesContainerView>
+    </LinearLayout>
+
+    <!--
+    For debugging bounds
+    <com.fuzz.android.view.DebugOverlay
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="false"/>
+-->
+
+</FrameLayout>

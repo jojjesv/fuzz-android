@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.fuzz.android.view.ArticleView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:clickable="true"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:orientation="vertical"
+    android:padding="@dimen/article_padding">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clickable="true"
+        android:clipChildren="false"
+        android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="@dimen/article_image_size"
+            android:layout_height="@dimen/article_image_size"
+            android:layout_gravity="center"
+            android:clickable="false"
+            android:clipChildren="false">
+
+            <ImageView
+                android:id="@+id/image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clickable="false"
+                android:src="@mipmap/ic_launcher" />
+
+            <TextView
+                android:id="@+id/quantity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:background="@drawable/quantity_bg"
+                android:clickable="false"
+                android:gravity="center"
+                android:minWidth="26dp"
+                android:padding="5dp"
+                android:text="2"
+                android:textColor="@color/white"
+                android:translationX="8dp"
+                android:translationY="-8dp" />
+
+        </FrameLayout>
+
+        <TextView
+            android:id="@+id/article_name"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="4dp"
+            android:clickable="false"
+            android:gravity="center" />
+
+        <com.fuzz.android.view.HeaderTextView
+            android:id="@+id/cost"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="-2dp"
+            android:clickable="false"
+            android:gravity="center"
+            android:text="4 kr"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+</com.fuzz.android.view.ArticleView>
