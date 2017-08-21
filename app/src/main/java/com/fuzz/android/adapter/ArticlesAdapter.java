@@ -1,6 +1,10 @@
 package com.fuzz.android.adapter;
 
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -72,14 +76,24 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
                 public void onGotItem(Bitmap item, boolean wasCached) {
                     if (viewLayoutManager.findFirstVisibleItemPosition() <= POSITION && viewLayoutManager.findLastVisibleItemPosition() >= POSITION) {
                         //  Item visible
-                        HOLDER.imageView.setImageBitmap(item);
+                        if (data.imageDrawable == null){
+                            View refView = HOLDER.imageView;
+                            Bitmap scaled = Bitmap.createScaledBitmap(item,
+                                    refView.getMeasuredWidth(),
+                                    refView.getMeasuredHeight(), true);
+                            data.createImageDrawable(HOLDER.imageView.getResources(), scaled);
+                        }
+                        HOLDER.imageView.setImageDrawable(data.imageDrawable);
                     }
 
                     data.image = item;
                 }
             });
         } else if (data.image != null) {
-            holder.imageView.setImageBitmap(data.image);
+            if (data.imageDrawable == null){
+                data.createImageDrawable(holder.imageView.getResources(), data.image);
+            }
+            holder.imageView.setImageDrawable(data.imageDrawable);
         }
 
         if (data.costString == null){
@@ -114,6 +128,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         private Bitmap image;
         private boolean fetchingImage;
         private String costString;
+        private RoundedBitmapDrawable imageDrawable;
 
         public ArticleData(int id, int quantity, double cost, String imageUrl, String name) {
             this.id = id;
@@ -121,6 +136,11 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             this.cost = cost;
             this.imageUrl = imageUrl;
             this.name = name;
+        }
+
+        private void createImageDrawable(Resources res, Bitmap bitmap){
+            imageDrawable = RoundedBitmapDrawableFactory.create(res, bitmap);
+            imageDrawable.setCornerRadius(24f);
         }
     }
 

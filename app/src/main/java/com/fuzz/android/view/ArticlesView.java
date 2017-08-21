@@ -3,7 +3,6 @@ package com.fuzz.android.view;
 import android.animation.Animator;
 import android.content.Context;
 import android.graphics.Rect;
-import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
@@ -207,6 +206,8 @@ public class ArticlesView extends RecyclerView {
             if (draggableOverInfo) {
                 //  Did drag to article info
                 articleInfoListener.showArticleInfo((ArticlesAdapter.ArticleData) selectedArticleView.getTag());
+
+                animateButtonBackground(infoBtnBackground, false);
             } else {
                 //  Dragged to nowhere
                 articleDragListener.onMissedDrag(selectedArticle);
@@ -340,6 +341,7 @@ public class ArticlesView extends RecyclerView {
 
     private void onPickedUpArticle(ArticleView selectedView) {
         selectedArticleView = selectedView;
+        selectedView.setPickedUp(true);
 
         if (articleDragListener != null) {
             articleDragListener.onStartedDrag(selectedView);
@@ -453,7 +455,7 @@ public class ArticlesView extends RecyclerView {
         ImageView fromImage = (ImageView) from.findViewById(R.id.image);
         ImageView toImage = (ImageView) to.findViewById(R.id.image);
 
-        toImage.setImageBitmap(((BitmapDrawable) fromImage.getDrawable()).getBitmap());
+        toImage.setImageDrawable(fromImage.getDrawable());
     }
 
     @Override

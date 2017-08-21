@@ -1,7 +1,6 @@
 package com.fuzz.android.activity;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -9,11 +8,10 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
+import android.text.Editable;
 import android.text.SpannableString;
 import android.text.Spanned;
-import android.text.SpannedString;
 import android.text.style.ForegroundColorSpan;
-import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.Interpolator;
@@ -41,7 +39,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.regex.Pattern;
 
 /**
  * Activity for managing shopping cart and placing orders.
@@ -66,6 +64,7 @@ public class ShoppingCartActivity extends Activity {
     private String paymentToken;
     private ArticlesAdapter articlesAdapter;
     private View oldPaymentInfoLayout;
+    private int paymentInfoGroupId;
 
     public static double getMinimumCost() {
         return minimumCost;
@@ -156,6 +155,8 @@ public class ShoppingCartActivity extends Activity {
         paymentMethods.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, @IdRes int id) {
+                paymentInfoGroupId = id;
+
                 switch (id) {
                     case R.id.payment_method_card:
                         changePaymentInfoGroup(findViewById(R.id.card_payment_group));
@@ -314,7 +315,55 @@ public class ShoppingCartActivity extends Activity {
     }
 
     public void beginPlacingOrder(@Nullable View v) {
+        if (!validateForm()) {
+            return;
+        }
+
         placeOrder();
+    }
+
+    private boolean validateForm(){
+        EditText billingAddress = (EditText) findViewById(R.id.billing_address_input);
+
+        if (billingAddress.getText().length() < 3) {
+            onFieldInvalid(billingAddress);
+            return false;
+        }
+
+        switch (paymentInfoGroupId) {
+            case R.id.card_payment_group:
+
+                EditText cardNumber = (EditText)findViewById(R.id.card_number_input);
+                if (cardNumber.getText().length() != 4 * 4 + 3) {
+                    onFieldInvalid(cardNumber);
+                    return false;
+                }
+
+                EditText expire = (EditText)findViewById(R.id.expire_date_input);
+                Editable expireText = expire.getText();
+                if (expireText.length() != 5 || !expireText.toString().matches("\\d+\\/\\d+")) {
+                    onFieldInvalid(billingAddress);
+                    return false;
+                }
+
+                EditText cvc = (EditText)findViewById(R.id.cvc_input);
+                if (cvc.getText().length() != 3) {
+                    onFieldInvalid(cvc);
+                    return false;
+                }
+
+                break;
+        }
+
+        return true;
+    }
+
+    /**
+     * Called when a form field has invalid value upon submission.
+     * @param field
+     */
+    private void onFieldInvalid(View field){
+
     }
 
     public void requestPlaceOrder(String postData) {

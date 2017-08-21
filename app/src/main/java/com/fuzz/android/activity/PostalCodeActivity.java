@@ -2,6 +2,7 @@ package com.fuzz.android.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
@@ -10,6 +11,9 @@ import android.widget.EditText;
 import com.fuzz.android.R;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
+import com.fuzz.android.fragment.dialog.AlertDialog;
+import com.fuzz.android.fragment.dialog.OneButtonAction;
+import com.fuzz.android.preferences.PreferenceKeys;
 import com.fuzz.android.view.DefaultTypefaces;
 
 import org.json.JSONArray;
@@ -21,6 +25,7 @@ import org.json.JSONObject;
  */
 public class PostalCodeActivity extends Activity {
     private String lastSubmittedPostalCode;
+    private SharedPreferences preferences;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -29,7 +34,18 @@ public class PostalCodeActivity extends Activity {
 
         setContentView(R.layout.activity_postal_code);
         DefaultTypefaces.applyDefaultsToViews(this);
-        //submitPostalCode(null);
+        setupPreferences();
+    }
+
+    private void setupPreferences(){
+        preferences = getPreferences(MODE_PRIVATE);
+
+        String prefPostalCode = preferences.getString(PreferenceKeys.POSTAL_CODE, null);
+
+        if (prefPostalCode != null){
+            //  Has previously successful postal code
+            ((EditText) findViewById(R.id.text_input)).setText(prefPostalCode);
+        }
     }
 
     /**
@@ -40,7 +56,6 @@ public class PostalCodeActivity extends Activity {
     public void submitPostalCode(View v) {
         EditText inputField = (EditText) findViewById(R.id.text_input);
         String postalCode = inputField.getText().toString();
-        postalCode = "35052";
 
         lastSubmittedPostalCode = postalCode;
 
@@ -59,11 +74,16 @@ public class PostalCodeActivity extends Activity {
 
     private void onPostalCodeResult(boolean deliverable) {
         if (deliverable) {
+            preferences.edit().putString(PreferenceKeys.POSTAL_CODE, lastSubmittedPostalCode).apply();
+
             ShoppingCartActivity.setPostalCode(lastSubmittedPostalCode);
             //  To main
             Intent mainIntent = new Intent(this, MainActivity.class);
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
             fetchCategories(mainIntent);
+        } else {
+            new AlertDialog(R.string.undeliverable_header, R.string.undeliverable_message,
+                    new OneButtonAction(R.string.ok, null)).show(getFragmentManager(), null);
         }
     }
 
