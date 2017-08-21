@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,7 +28,7 @@ import java.util.Arrays;
 
 public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.ArticlesViewHolder> {
 
-    private GridLayoutManager viewLayoutManager;
+    private RecyclerView.LayoutManager viewLayoutManager;
     private ArrayList<ArticleData> articles;
     private View.OnClickListener itemsOnClickListener;
 
@@ -43,17 +44,20 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         this.itemsOnClickListener = itemsOnClickListener;
     }
 
-    public GridLayoutManager getViewLayoutManager() {
-        return viewLayoutManager;
-    }
-
-    public void setViewLayoutManager(GridLayoutManager viewLayoutManager) {
+    public void setViewLayoutManager(RecyclerView.LayoutManager viewLayoutManager) {
         this.viewLayoutManager = viewLayoutManager;
     }
 
     @Override
     public ArticlesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.article_item, parent, false);
+
+        if (viewLayoutManager instanceof LinearLayoutManager) {
+            //  Fixed-width
+            v.getLayoutParams().width = parent.getResources().getDimensionPixelSize(R.dimen.article_item_width);
+            v.setLayoutParams(v.getLayoutParams());
+        }
+
         DefaultTypefaces.applyDefaultsToChildren((ViewGroup) v);
         return new ArticlesViewHolder(v);
     }
@@ -74,9 +78,22 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             Caches.getBitmapFromUrl(data.imageUrl, new Caches.CacheCallback<Bitmap>() {
                 @Override
                 public void onGotItem(Bitmap item, boolean wasCached) {
-                    if (viewLayoutManager.findFirstVisibleItemPosition() <= POSITION && viewLayoutManager.findLastVisibleItemPosition() >= POSITION) {
+                    int firstVisibleItemPosition;
+                    int lastVisibleItemPosition;
+
+                    if (viewLayoutManager instanceof GridLayoutManager) {
+                        GridLayoutManager cast = (GridLayoutManager) viewLayoutManager;
+                        firstVisibleItemPosition = cast.findFirstVisibleItemPosition();
+                        lastVisibleItemPosition = cast.findLastVisibleItemPosition();
+                    } else {
+                        LinearLayoutManager cast = (LinearLayoutManager) viewLayoutManager;
+                        firstVisibleItemPosition = cast.findFirstVisibleItemPosition();
+                        lastVisibleItemPosition = cast.findLastVisibleItemPosition();
+                    }
+
+                    if (firstVisibleItemPosition <= POSITION && lastVisibleItemPosition >= POSITION) {
                         //  Item visible
-                        if (data.imageDrawable == null){
+                        if (data.imageDrawable == null) {
                             View refView = HOLDER.imageView;
                             Bitmap scaled = Bitmap.createScaledBitmap(item,
                                     refView.getMeasuredWidth(),
@@ -90,13 +107,13 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
                 }
             });
         } else if (data.image != null) {
-            if (data.imageDrawable == null){
+            if (data.imageDrawable == null) {
                 data.createImageDrawable(holder.imageView.getResources(), data.image);
             }
             holder.imageView.setImageDrawable(data.imageDrawable);
         }
 
-        if (data.costString == null){
+        if (data.costString == null) {
             data.costString = holder.itemView.getResources().getString(R.string.cost, Formatter.formatCurrency(data.cost));
         }
 
@@ -138,7 +155,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             this.name = name;
         }
 
-        private void createImageDrawable(Resources res, Bitmap bitmap){
+        private void createImageDrawable(Resources res, Bitmap bitmap) {
             imageDrawable = RoundedBitmapDrawableFactory.create(res, bitmap);
             imageDrawable.setCornerRadius(24f);
         }

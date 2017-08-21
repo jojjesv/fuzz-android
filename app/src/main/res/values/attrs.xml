@@ -5,4 +5,12 @@
         <attr name="translation_y_to" format="dimension" />
         <attr name="translation_duration" format="integer" />
     </declare-styleable>
+    <declare-styleable name="ArticlesView">
+        <attr name="articlesLayout" />
+    </declare-styleable>
+
+    <attr name="articlesLayout" format="enum">
+        <enum name="horizontal" value="0" />
+        <enum name="grid" value="1" />
+    </attr>
 </resources>

@@ -102,7 +102,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/field_separator"
                 android:orientation="vertical"
-                android:visibility="visible">
+                android:visibility="gone">
 
                 <TextView
                     style="@style/FormLabel"
@@ -341,6 +341,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:imeOptions="actionNext"
+                        android:inputType="number"
                         android:maxLines="1"
                         android:nextFocusDown="@+id/message_input"
                         android:singleLine="true" />

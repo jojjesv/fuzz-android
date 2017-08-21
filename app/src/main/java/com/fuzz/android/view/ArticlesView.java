@@ -2,10 +2,12 @@ package com.fuzz.android.view;
 
 import android.animation.Animator;
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -68,12 +70,33 @@ public class ArticlesView extends RecyclerView {
     public ArticlesView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
-        GridLayoutManager layout = new GridLayoutManager(context, 3, GridLayoutManager.VERTICAL, false) {
-            @Override
-            public boolean canScrollVertically() {
-                return scrollable && !isDraggingArticle() && super.canScrollVertically();
-            }
-        };
+        TypedArray attrsArray = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.ArticlesView, 0, 0);
+
+        ArticlesLayout articlesLayout = ArticlesLayout.values()[attrsArray.getInt(R.styleable.ArticlesView_articlesLayout, ArticlesLayout.GRID.ordinal())];
+
+        LayoutManager layout;
+        if (articlesLayout == ArticlesLayout.HORIZONTAL) {
+            layout = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false) {
+                @Override
+                public boolean canScrollHorizontally() {
+                    return scrollable && !isDraggingArticle() && super.canScrollHorizontally();
+                }
+
+                @Override
+                public boolean canScrollVertically() {
+                    return false;
+                }
+            };
+        } else {
+            //  Grid; default
+            layout = new GridLayoutManager(context, 3, GridLayoutManager.VERTICAL, false) {
+                @Override
+                public boolean canScrollVertically() {
+                    return scrollable && !isDraggingArticle() && super.canScrollVertically();
+                }
+            };
+        }
+
         setLayoutManager(layout);
 
         handler = new Handler();
@@ -142,11 +165,13 @@ public class ArticlesView extends RecyclerView {
                     if (under != null) {
                         attemptPickUpArticle((ArticleView) under);
                     }
-                    break;
+                    return super.onInterceptTouchEvent(e);
 
                 case MotionEvent.ACTION_MOVE:
                     if (selectedArticleView != null) {
                         moveDraggableArticleView(e);
+                    } else {
+                        return super.onInterceptTouchEvent(e);
                     }
                     break;
 
@@ -159,7 +184,7 @@ public class ArticlesView extends RecyclerView {
                     oldTouchY = -1;
 
                     numOfTouchUps++;
-                    break;
+                    return super.onInterceptTouchEvent(e);
             }
         } else {
             return super.onInterceptTouchEvent(e);
@@ -461,7 +486,7 @@ public class ArticlesView extends RecyclerView {
     @Override
     public void setAdapter(Adapter adapter) {
         super.setAdapter(adapter);
-        ((ArticlesAdapter) adapter).setViewLayoutManager((GridLayoutManager) getLayoutManager());
+        ((ArticlesAdapter) adapter).setViewLayoutManager(getLayoutManager());
     }
 
     public interface ArticleInfoListener {
@@ -480,5 +505,10 @@ public class ArticlesView extends RecyclerView {
          * @param view
          */
         public void onMissedDrag(ArticleView view);
+    }
+
+    private enum ArticlesLayout {
+        HORIZONTAL,
+        GRID
     }
 }

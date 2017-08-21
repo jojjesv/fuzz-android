@@ -73,8 +73,14 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         articles.setArticleDragListener(this);
         articles.setArticleInfoListener(this);
 
+        ArticlesView newArticles = (ArticlesView) findViewById(R.id.new_articles);
+        newArticles.setItemsMovable(true);
+        newArticles.setArticleDragListener(this);
+        newArticles.setArticleInfoListener(this);
+
         CategoriesView categories = (CategoriesView) findViewById(R.id.categories);
         articles.setCategoriesView(categories);
+        newArticles.setCategoriesView(categories);
     }
 
     private void updateCartCost() {
@@ -230,31 +236,44 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
             String baseImageUrl = responseObj.getString("base_image_url");
             JSONArray articles = responseObj.getJSONArray("articles");
 
-            ArrayList<ArticlesAdapter.ArticleData> data = new ArrayList<>();
+            ArrayList<ArticlesAdapter.ArticleData> items = new ArrayList<>();
+            ArrayList<ArticlesAdapter.ArticleData> newItems = new ArrayList<>();
             JSONObject article;
 
             //  Versions with different cost/quantity may occur
             String[] costs;
             String[] quantities;
+            ArticlesAdapter.ArticleData data;
             for (int i = 0, n = articles.length(); i < n; i++) {
                 article = articles.getJSONObject(i);
                 quantities = article.getString("quantities").split(",");
                 costs = article.getString("costs").split(",");
 
                 for (int j = 0, jn = quantities.length; j < jn; j++) {
-                    data.add(
-                            new ArticlesAdapter.ArticleData(
-                                    article.getInt("id"),
-                                    Integer.parseInt(quantities[j]),
-                                    Double.parseDouble(costs[j]),
-                                    baseImageUrl + article.getString("image"),
-                                    article.getString("name"))
-                    );
+                    data = new ArticlesAdapter.ArticleData(
+                            article.getInt("id"),
+                            Integer.parseInt(quantities[j]),
+                            Double.parseDouble(costs[j]),
+                            baseImageUrl + article.getString("image"),
+                            article.getString("name"));
+                    items.add(data);
+
+                    if (article.getBoolean("is_new")) {
+                        newItems.add(data);
+                    }
                 }
             }
 
-            ArticlesAdapter adapter = new ArticlesAdapter(data.toArray(new ArticlesAdapter.ArticleData[0]));
+            ArticlesAdapter adapter = new ArticlesAdapter(items.toArray(new ArticlesAdapter.ArticleData[0]));
             ((ArticlesView) findViewById(R.id.articles)).setAdapter(adapter);
+
+            if (newItems.size() > 0){
+                //  Has new items
+                adapter = new ArticlesAdapter(newItems.toArray(new ArticlesAdapter.ArticleData[0]));
+                ((ArticlesView) findViewById(R.id.new_articles)).setAdapter(adapter);
+            } else {
+                findViewById(R.id.new_articles_container).setVisibility(View.GONE);
+            }
 
 
         } catch (JSONException ex) {

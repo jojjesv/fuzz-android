@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -8,6 +9,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="#fdaf17"
         android:clipChildren="false"
         android:orientation="vertical">
 
@@ -41,8 +43,8 @@
                 <ImageView
                     android:id="@+id/article_info_button"
                     android:layout_width="wrap_content"
-                    android:layout_gravity="center"
                     android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:src="@drawable/ic_info" />
             </FrameLayout>
 
@@ -106,9 +108,9 @@
                 android:paddingTop="3dp"
                 android:text="@string/cart_cost_appendage"
                 android:textColor="@color/white"
-                android:visibility="gone"
                 android:translationX="-42dp"
-                android:translationY="48dp" />
+                android:translationY="48dp"
+                android:visibility="gone" />
 
             <TextView
                 android:id="@+id/shopping_cart_note"
@@ -128,48 +130,96 @@
 
         </RelativeLayout>
 
-        <com.fuzz.android.view.ArticlesContainerView
+        <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <LinearLayout
+            <ScrollView
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="vertical">
-
-                <com.fuzz.android.view.HeaderTextView
-                    android:id="@+id/popular_header"
+                android:layout_height="match_parent">
+                <!-- Frontpage items -->
+                <com.fuzz.android.view.ArticlesContainerView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:gravity="center"
-                    android:text="@string/popular"
-                    android:textSize="36sp" />
+                    android:layout_height="match_parent">
 
-                <com.fuzz.android.view.HeaderTextView
-                    android:id="@+id/current_categories"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/this_week"
-                    android:textSize="24sp" />
+                    <!-- Categories -->
+                    <com.fuzz.android.view.CategoriesView
+                        android:id="@+id/categories"
+                        android:layout_width="240dp"
+                        android:layout_height="match_parent"
+                        android:divider="@null"
+                        android:scrollbars="none" />
 
-                <com.fuzz.android.view.ArticlesView
-                    android:id="@+id/articles"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_marginTop="24dp"
-                    android:clickable="true" />
-            </LinearLayout>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="vertical">
 
-            <!-- Categories -->
-            <com.fuzz.android.view.CategoriesView
-                android:id="@+id/categories"
-                android:layout_width="240dp"
-                android:layout_height="match_parent"
-                android:divider="@null"
-                android:scrollbars="none" />
-        </com.fuzz.android.view.ArticlesContainerView>
+                        <com.fuzz.android.view.HeaderTextView
+                            android:id="@+id/popular_header"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:gravity="center"
+                            android:text="@string/popular"
+                            android:textColor="@color/white"
+                            android:textSize="36sp" />
+
+                        <com.fuzz.android.view.HeaderTextView
+                            android:id="@+id/current_categories"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:text="@string/this_week"
+                            android:textSize="24sp" />
+
+
+                        <!-- New articles -->
+                        <LinearLayout
+                            android:id="@+id/new_articles_container"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:orientation="vertical">
+
+                            <com.fuzz.android.view.HeaderTextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:text="@string/new_articles"
+                                android:textColor="@color/white"
+                                android:textSize="24sp" />
+
+                            <com.fuzz.android.view.ArticlesView
+                                android:id="@+id/new_articles"
+                                android:layout_width="match_parent"
+                                android:layout_height="140dp"
+                                android:layout_marginTop="16dp"
+                                android:clickable="true"
+                                app:articlesLayout="horizontal" />
+                        </LinearLayout>
+
+                        <com.fuzz.android.view.HeaderTextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="24dp"
+                            android:gravity="center"
+                            android:text="@string/popular"
+                            android:textColor="@color/white"
+                            android:textSize="24sp" />
+
+                        <com.fuzz.android.view.ArticlesView
+                            android:id="@+id/articles"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginTop="24dp"
+                            android:clickable="true" />
+                    </LinearLayout>
+                </com.fuzz.android.view.ArticlesContainerView>
+
+            </ScrollView>
+
+        </FrameLayout>
     </LinearLayout>
 
     <!--

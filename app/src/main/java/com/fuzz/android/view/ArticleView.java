@@ -4,6 +4,7 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.ViewParent;
 import android.widget.LinearLayout;
 
 /**
@@ -33,17 +34,27 @@ public class ArticleView extends LinearLayout {
     public boolean dispatchTouchEvent(MotionEvent ev) {
         int action = ev.getAction();
 
-        if (action == MotionEvent.ACTION_DOWN) {
-            setAlpha(TOUCH_DOWN_ALPHA);
-        } else if (action == MotionEvent.ACTION_UP) {
-            if (!isPickedUp) {
-                setAlpha(1);
-            } else {
-                //  Don't set alpha to 1 when up, alpha is managed by articlesview
-                isPickedUp = false;
+        if (canMove()) {
+            if (action == MotionEvent.ACTION_DOWN) {
+                setAlpha(TOUCH_DOWN_ALPHA);
+            } else if (action == MotionEvent.ACTION_UP) {
+                if (!isPickedUp) {
+                    setAlpha(1);
+                } else {
+                    //  Don't set alpha to 1 when up, alpha is managed by articlesview
+                    isPickedUp = false;
+                }
             }
         }
 
         return super.dispatchTouchEvent(ev);
+    }
+
+    private boolean canMove(){
+        ViewParent parent = getParent();
+        if (!(parent instanceof ArticlesView)){
+            return true;
+        }
+        return ((ArticlesView)getParent()).isItemsMovable();
     }
 }

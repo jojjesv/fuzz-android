@@ -18,6 +18,7 @@
     <string name="postal_code_hint">Skriv postnummer</string>
     <string name="popular">Populärt</string>
     <string name="this_week">denna vecka</string>
+    <string name="new_articles">Nytt i sortimentet</string>
     <string name="drag_to_cart">eller hit till kundvagnen</string>
     <string name="drag_to_info">Dra artikeln hit för mer information</string>
     <string name="cart_items">%d</string>
