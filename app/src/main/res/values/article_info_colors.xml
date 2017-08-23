@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="AI_background">#FAFAFA</color>
+    <color name="AI_header">#212121</color>
+    <color name="AI_text">#747474</color>
+    <color name="AI_text_light">#8c8c8c</color>
+
+</resources>

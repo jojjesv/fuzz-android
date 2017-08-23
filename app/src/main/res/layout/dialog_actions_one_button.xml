@@ -7,6 +7,6 @@
 
     <TextView
         android:id="@+id/accept_text"
-        style="@style/ButtonContainerText"
+        style="@style/ButtonText"
         android:text="Cancel" />
 </LinearLayout>

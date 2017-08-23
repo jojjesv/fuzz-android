@@ -470,12 +470,14 @@ public class ArticlesView extends RecyclerView {
         TextView fromCost = (TextView) from.findViewById(R.id.cost);
         TextView toCost = (TextView) to.findViewById(R.id.cost);
 
-        fromCost.setText(toCost.getText());
+        toCost.setText(fromCost.getText());
+        toCost.setTextColor(fromCost.getCurrentTextColor());
 
         TextView fromName = (TextView) from.findViewById(R.id.article_name);
         TextView toName = (TextView) to.findViewById(R.id.article_name);
 
         toName.setText(fromName.getText());
+        toName.setTextColor(fromName.getCurrentTextColor());
 
         ImageView fromImage = (ImageView) from.findViewById(R.id.image);
         ImageView toImage = (ImageView) to.findViewById(R.id.image);

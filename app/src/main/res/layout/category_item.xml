@@ -2,20 +2,37 @@
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:paddingTop="8dp"
-    android:paddingLeft="8dp">
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    android:paddingLeft="8dp"
+    android:paddingTop="8dp">
 
-    <com.fuzz.android.view.HeaderTextView
-        android:id="@+id/text"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:background="@drawable/rect_oval"
-        android:clickable="false"
+        android:backgroundTint="@color/black"
         android:paddingBottom="8dp"
         android:paddingLeft="15dp"
         android:paddingRight="14dp"
         android:paddingTop="8dp"
-        android:text="Test"
-        android:textColor="@color/white"
-        android:textSize="20sp" />
+        android:stateListAnimator="@animator/touchable">
+
+        <ImageView
+            android:id="@+id/remove"
+            android:visibility="gone"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="3dp"
+            android:src="@drawable/ic_remove_24dp" />
+
+        <com.fuzz.android.view.HeaderTextView
+            android:id="@+id/text"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="false"
+            android:text="Test"
+            android:textColor="@color/white"
+            android:textSize="20sp" />
+    </LinearLayout>
 </FrameLayout>

@@ -1,12 +1,16 @@
 package com.fuzz.android.fragment;
 
+import android.app.Dialog;
 import android.app.DialogFragment;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
+import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -33,28 +37,52 @@ public class ArticleInfoFragment extends DialogFragment {
         View v = inflater.inflate(R.layout.article_info, container, false);
         view = v;
 
-        TextView nameView = (TextView)v.findViewById(R.id.article_name);
-        nameView.setText(article.name);
+        TextView nameView = (TextView) v.findViewById(R.id.article_name);
+        nameView.setText(getResources().getString(R.string.article_name_quantity, article.name, article.quantity));
 
-        DefaultTypefaces.applyDefaultsToChildren((ViewGroup)v);
+        DefaultTypefaces.applyDefaultsToChildren((ViewGroup) v);
 
+        final ImageView image = (ImageView) view.findViewById(R.id.image);
+        image.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
+                setupImage(image);
+                image.removeOnLayoutChangeListener(this);
+            }
+        });
+
+        return v;
+    }
+
+    private void setupImage(final ImageView image) {
         Caches.getBitmapFromUrl(article.imageUrl, new Caches.CacheCallback<Bitmap>() {
             @Override
             public void onGotItem(Bitmap item, boolean wasCached) {
-                ImageView image = (ImageView)view.findViewById(R.id.image);
 
-                if (wasCached){
+                Bitmap scaled = Bitmap.createScaledBitmap(item, image.getMeasuredWidth(), image.getMeasuredHeight(), true);
+
+                if (!wasCached) {
                     image.setAlpha(0f);
                     image.animate()
                             .alpha(1)
                             .start();
                 }
 
-                image.setImageBitmap(item);
+                RoundedBitmapDrawable drawable = RoundedBitmapDrawableFactory.create(image.getResources(), scaled);
+                drawable.setCornerRadius(24);
+                image.setImageDrawable(drawable);
             }
         });
+    }
 
-        return v;
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        Window window = dialog.getWindow();
+        window.getDecorView().setBackground(null);
+        window.getAttributes().windowAnimations = R.style.InfoDialogAnimations;
+
+        return dialog;
     }
 
     public void fetchArticleInfo(ArticlesAdapter.ArticleData article) {
@@ -84,22 +112,17 @@ public class ArticleInfoFragment extends DialogFragment {
             TextView descriptionView = (TextView) view.findViewById(R.id.description);
             TextView contentsView = (TextView) view.findViewById(R.id.contents);
 
-            if (!hasDescription && hasContents) {
+            if (!hasDescription) {
                 //  No description
                 descriptionView.setVisibility(View.GONE);
-            } else if (hasDescription && !hasContents) {
-                //  No contents info
-                contentsView.setVisibility(View.GONE);
+            } else {
+                descriptionView.setText(infoObj.getString("description"));
             }
 
-            if (hasDescription) {
-                descriptionView.setText(infoObj.getString("description"));
-            } else if (!hasContents) {
-                //  has neither
-                descriptionView.setText(getString(R.string.no_description_or_contents));
-                contentsView.setVisibility(View.GONE);
+            if (hasContents) {
+                contentsView.setText(getString(R.string.contents, infoObj.getString("contents")));
             } else {
-                contentsView.setText(infoObj.getString("contents"));
+                contentsView.setText(R.string.no_contents_info);
             }
 
         } catch (JSONException ex) {

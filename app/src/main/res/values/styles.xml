@@ -20,12 +20,18 @@
         <item name="android:background">@drawable/edittext_bg</item>
     </style>
 
+    <style name="EditText.ShoppingCart">
+        <item name="android:background">@drawable/shopping_cart_edittext_bg</item>
+    </style>
+
     <style name="ButtonContainer">
         <item name="android:background">@drawable/button_bg</item>
         <item name="android:paddingRight">18dp</item>
         <item name="android:paddingLeft">18dp</item>
         <item name="android:paddingTop">12dp</item>
         <item name="android:paddingBottom">12dp</item>
+        <item name="android:elevation">3dp</item>
+        <item name="android:stateListAnimator">@animator/touchable</item>
         <item name="android:clickable">true</item>
     </style>
 
@@ -35,17 +41,27 @@
         <item name="android:layout_height">wrap_content</item>
     </style>
 
-    <style name="ButtonContainerText">
+    <style name="ButtonText">
         <item name="android:gravity">center</item>
         <item name="android:layout_marginLeft">8dp</item>
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">match_parent</item>
         <item name="android:textSize">18sp</item>
+        <item name="android:layout_gravity">center</item>
     </style>
 
     <style name="FormLabel">
         <item name="android:paddingBottom">4dp</item>
         <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="FormLabel.ShoppingCart">
+        <item name="android:textColor">@color/shopping_cart_dark</item>
+    </style>
+
+    <style name="InfoDialogAnimations">
+        <item name="android:windowEnterAnimation">@anim/info_dialog_reveal</item>
+        <item name="android:windowExitAnimation">@anim/info_dialog_hide</item>
     </style>
 
 </resources>

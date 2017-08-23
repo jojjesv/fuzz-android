@@ -3,7 +3,16 @@
     <color name="primary">#addcd6</color>
     <color name="secondary">#f7a8a3</color>
     <color name="colorPrimaryDark">#303F9F</color>
+    <color name="black">#212121</color>
     <color name="colorAccent">#FF4081</color>
-    <color name="cart_cost_translucent">#befafafa</color>
+    <color name="white_translucent">#befafafa</color>
     <color name="white">#FAFAFA</color>
+    <color name="shopping_cart_light">#73d0f9</color>
+    <color name="shopping_cart_dark">#4f78c1</color>
+    <color name="shopping_cart_secondary">#f04f81</color>
+    <color name="red">#ed1a3d</color>
+    <color name="blue">#4978bc</color>
+    <color name="light_blue">#6acbdc</color>
+    <color name="pink">#e85893</color>
+    <color name="frontpage_bg">#ffa719</color>
 </resources>

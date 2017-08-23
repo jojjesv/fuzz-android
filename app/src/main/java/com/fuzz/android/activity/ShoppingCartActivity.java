@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -26,6 +25,7 @@ import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.format.Formatter;
 import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
+import com.fuzz.android.helper.AboutFooterHelper;
 import com.fuzz.android.listener.CardNumberFormatWatcher;
 import com.fuzz.android.listener.MonthYearFormatWatcher;
 import com.fuzz.android.view.ArticlesView;
@@ -39,7 +39,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.regex.Pattern;
 
 /**
  * Activity for managing shopping cart and placing orders.
@@ -224,7 +223,7 @@ public class ShoppingCartActivity extends Activity {
         //  Update total cost label
         double totalCost = getTotalCost();
 
-        ForegroundColorSpan costAmountSpan = new ForegroundColorSpan(Color.BLUE);
+        ForegroundColorSpan costAmountSpan = new ForegroundColorSpan(getResources().getColor(R.color.white_translucent));
 
         String prefix;
         String suffix;
@@ -554,5 +553,13 @@ public class ShoppingCartActivity extends Activity {
         public void onItemAdded(ArticlesAdapter.ArticleData item);
 
         public void onItemRemoved(ArticlesAdapter.ArticleData item);
+    }
+
+    public void showFeedbackDialog(View v) {
+        AboutFooterHelper.getInstance().showFeedbackDialog(this);
+    }
+
+    public void showAboutApp(View v) {
+
     }
 }

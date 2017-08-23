@@ -26,7 +26,6 @@ public class ArticlesContainerView extends FrameLayout {
     private int categoriesSwipeDistance;
     private byte scrollingDirection = NONE;
     private ArticlesView articlesView;
-    private ArticlesView newArticlesView;
     private boolean wasCategoriesVisible;
 
     public ArticlesContainerView(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -44,10 +43,8 @@ public class ArticlesContainerView extends FrameLayout {
 
         categoriesView = (CategoriesView) findViewById(R.id.categories);
         articlesView = (ArticlesView) findViewById(R.id.articles);
-        newArticlesView = (ArticlesView) findViewById(R.id.new_articles);
 
         articlesView.setContainer(this);
-        newArticlesView.setContainer(this);
     }
 
     public byte getScrollingDirection(){

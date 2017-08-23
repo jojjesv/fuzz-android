@@ -1,7 +1,9 @@
 package com.fuzz.android.activity;
 
+import android.animation.ValueAnimator;
 import android.content.Intent;
-import android.support.annotation.NonNull;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,23 +11,25 @@ import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
 import android.view.View;
-import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.fuzz.android.R;
 import com.fuzz.android.adapter.ArticlesAdapter;
+import com.fuzz.android.adapter.CategoriesAdapter;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.format.Formatter;
 import com.fuzz.android.fragment.ArticleInfoFragment;
+import com.fuzz.android.util.StringUtils;
 import com.fuzz.android.view.ArticleView;
 import com.fuzz.android.view.ArticlesView;
+import com.fuzz.android.view.CategoriesTutorial;
 import com.fuzz.android.view.CategoriesView;
 import com.fuzz.android.view.DefaultTypefaces;
 
@@ -34,21 +38,17 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity implements ArticlesView.ArticleInfoListener, ArticlesView.ArticleDragListener, ShoppingCartActivity.ShoppingCartListener {
 
-    /**
-     * Category name mapped to its id.
-     */
-    private HashMap<String, Integer> categories;
+    private CategoriesAdapter.CategoryData[] categories;
     private ArrayList<Integer> selectedCategories;
     private boolean showingNoteViews;
+    private int currentBackgroundColor;
     private int cartItemCount;
     private Interpolator cartCostRevealInterpolator;
 
     public MainActivity() {
-        categories = new HashMap<>();
         selectedCategories = new ArrayList<>();
     }
 
@@ -65,6 +65,8 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         setupLayout();
 
         ShoppingCartActivity.setShoppingCartListener(this);
+
+        maybeStartTutorial();
     }
 
     private void setupLayout() {
@@ -73,14 +75,22 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         articles.setArticleDragListener(this);
         articles.setArticleInfoListener(this);
 
-        ArticlesView newArticles = (ArticlesView) findViewById(R.id.new_articles);
-        newArticles.setItemsMovable(true);
-        newArticles.setArticleDragListener(this);
-        newArticles.setArticleInfoListener(this);
-
         CategoriesView categories = (CategoriesView) findViewById(R.id.categories);
         articles.setCategoriesView(categories);
-        newArticles.setCategoriesView(categories);
+
+        View root = findViewById(R.id.root);
+        currentBackgroundColor = ((ColorDrawable) root.getBackground()).getColor();
+    }
+
+    private void maybeStartTutorial() {
+        boolean start = true;
+        if (start) {
+            startTutorial();
+        }
+    }
+
+    private void startTutorial() {
+        new CategoriesTutorial(this);
     }
 
     private void updateCartCost() {
@@ -88,7 +98,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         TextView badge = (TextView) findViewById(R.id.cart_cost);
 
-        if (totalCost == 0){
+        if (totalCost == 0) {
             //  This won't occur while in MainActivity, no animation needed
             badge.setVisibility(View.GONE);
             cartItemCount = 0;
@@ -107,13 +117,13 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         ForegroundColorSpan countColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.white));
         spannable.setSpan(countColorSpan, 0, costStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
-        ForegroundColorSpan costColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.cart_cost_translucent));
+        ForegroundColorSpan costColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.white_translucent));
         spannable.setSpan(costColorSpan, costStart + 1, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
 
         badge.setText(spannable);
 
-        if (cartItemCount == 0){
+        if (cartItemCount == 0) {
             //  Went from no items added
             Animation reveal = AnimationUtils.loadAnimation(this, R.anim.reveal_top_right);
             badge.startAnimation(reveal);
@@ -123,34 +133,21 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         cartItemCount = itemCount;
     }
 
-    private void parseCategories(String categoriesResponse) {
+    private void parseCategories(String categoriesJson) {
         try {
 
-            JSONArray categoriesArray = new JSONArray(categoriesResponse);
+            JSONArray categoriesArray = new JSONArray(categoriesJson);
             JSONObject category;
+            int color;
 
-            String[] categories = new String[categoriesArray.length()];
+            categories = new CategoriesAdapter.CategoryData[categoriesArray.length()];
             for (int i = 0, n = categoriesArray.length(); i < n; i++) {
                 category = categoriesArray.getJSONObject(i);
-                categories[i] = category.getString("name");
-
-                this.categories.put(categories[i], category.getInt("id"));
+                color = Color.parseColor("#" + category.getString("color"));
+                categories[i] = new CategoriesAdapter.CategoryData(category.getInt("id"), category.getString("name"), color);
             }
 
-            ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, R.layout.category_item, R.id.text, categories) {
-                @NonNull
-                @Override
-                public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-                    boolean wasConvertNull = convertView == null;
-                    View v = super.getView(position, convertView, parent);
-
-                    if (wasConvertNull) {
-                        ((TextView) ((ViewGroup) v).getChildAt(0)).setTypeface(DefaultTypefaces.getDefaultHeader());
-                    }
-
-                    return v;
-                }
-            };
+            CategoriesAdapter adapter = new CategoriesAdapter(this, categories);
             ListView categoriesList = (ListView) findViewById(R.id.categories);
 
             categoriesList.setOnItemClickListener(createCategoryClickListener());
@@ -165,24 +162,82 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         return new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                String name = ((ArrayAdapter<String>) adapterView.getAdapter()).getItem(i);
-                onCategoryClicked(view, name, categories.get(name));
+                CategoriesAdapter.CategoryData data = ((CategoriesAdapter) adapterView.getAdapter()).getItem(i);
+                changeCategory(data);
+                view.findViewById(R.id.remove).setVisibility(data.enabled ? View.VISIBLE : View.GONE);
             }
         };
     }
 
-    private void onCategoryClicked(View v, String categoryName, int categoryId) {
-        boolean wasSelected = selectedCategories.contains(categoryId);
+    public void showCategories(@Nullable View v) {
+        CategoriesView categoriesView = (CategoriesView) findViewById(R.id.categories);
+        categoriesView.changeVisibility(false);
+    }
+
+    private void changeCategory(CategoriesAdapter.CategoryData categoryData) {
+        boolean wasSelected = selectedCategories.contains(categoryData.id);
+        categoryData.enabled = !wasSelected;
 
         if (!wasSelected) {
             //  Select category
-            selectedCategories.add(categoryId);
+            selectedCategories.add(categoryData.id);
         } else {
-            //  Deselect category
-            selectedCategories.remove((Integer) categoryId);
+            //  Deselect category, cast to object not to remove by index
+            selectedCategories.remove((Integer) categoryData.id);
         }
 
         fetchArticles();
+
+        //changeBackgroundColor(categoryData.color);
+
+        boolean isFrontpage = selectedCategories.isEmpty();
+
+        View frontpageHeader = findViewById(R.id.popular_header);
+        TextView categoriesHeader = (TextView) findViewById(R.id.category_header);
+
+        frontpageHeader.setVisibility(isFrontpage ? View.VISIBLE : View.GONE);
+        if (isFrontpage) {
+            categoriesHeader.setText(R.string.this_week);
+        } else {
+            ArrayList<String> categoryNames = new ArrayList<>();
+            for (int i = 0, n = categories.length; i < n; i++) {
+                if (categories[i].enabled) {
+                    categoryNames.add(categories[i].name);
+                }
+            }
+            categoriesHeader.setText(StringUtils.glue(this, categoryNames.toArray(new String[0])));
+        }
+
+        hideDragNoteViews();
+    }
+
+    private void changeBackgroundColor(final int newColor) {
+        final View root = findViewById(R.id.root);
+        ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
+        animator.setDuration(500);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+            int fromR = Color.red(currentBackgroundColor);
+            int fromG = Color.green(currentBackgroundColor);
+            int fromB = Color.blue(currentBackgroundColor);
+            int toR = Color.red(newColor);
+            int toG = Color.green(newColor);
+            int toB = Color.blue(newColor);
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator valueAnimator) {
+                float val = (float) valueAnimator.getAnimatedValue();
+
+                int r = (int) (fromR + (toR - fromR) * val);
+                int g = (int) (fromG + (toG - fromG) * val);
+                int b = (int) (fromB + (toB - fromB) * val);
+
+                root.setBackgroundColor(Color.argb(255, r, g, b));
+            }
+        });
+        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.start();
+
+        currentBackgroundColor = newColor;
     }
 
     public void fetchArticles() {
@@ -237,43 +292,34 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
             JSONArray articles = responseObj.getJSONArray("articles");
 
             ArrayList<ArticlesAdapter.ArticleData> items = new ArrayList<>();
-            ArrayList<ArticlesAdapter.ArticleData> newItems = new ArrayList<>();
+            ArticlesAdapter.ArticleData articleData;
             JSONObject article;
 
             //  Versions with different cost/quantity may occur
             String[] costs;
             String[] quantities;
-            ArticlesAdapter.ArticleData data;
             for (int i = 0, n = articles.length(); i < n; i++) {
                 article = articles.getJSONObject(i);
                 quantities = article.getString("quantities").split(",");
                 costs = article.getString("costs").split(",");
 
                 for (int j = 0, jn = quantities.length; j < jn; j++) {
-                    data = new ArticlesAdapter.ArticleData(
+                    articleData = new ArticlesAdapter.ArticleData(
                             article.getInt("id"),
                             Integer.parseInt(quantities[j]),
                             Double.parseDouble(costs[j]),
                             baseImageUrl + article.getString("image"),
                             article.getString("name"));
-                    items.add(data);
 
-                    if (article.getBoolean("is_new")) {
-                        newItems.add(data);
-                    }
+                    articleData.isNew = article.getBoolean("is_new");
+
+                    items.add(articleData);
                 }
             }
 
             ArticlesAdapter adapter = new ArticlesAdapter(items.toArray(new ArticlesAdapter.ArticleData[0]));
+            adapter.setDarkMode(true);
             ((ArticlesView) findViewById(R.id.articles)).setAdapter(adapter);
-
-            if (newItems.size() > 0){
-                //  Has new items
-                adapter = new ArticlesAdapter(newItems.toArray(new ArticlesAdapter.ArticleData[0]));
-                ((ArticlesView) findViewById(R.id.new_articles)).setAdapter(adapter);
-            } else {
-                findViewById(R.id.new_articles_container).setVisibility(View.GONE);
-            }
 
 
         } catch (JSONException ex) {

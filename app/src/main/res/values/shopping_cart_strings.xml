@@ -10,7 +10,7 @@
     <string name="payment_option_card">Kort</string>
     <string name="payment_option_cash">Kontant</string>
     <string name="payment_option_swish">Swish</string>
-    <string name="place_order">Placera da order</string>
+    <string name="place_order">Placera beställning</string>
     <string name="cost_add_articles">Kundvagn</string>
     <string name="cost_add_below_min">Mellanskillnad (minst %skr)</string>
     <string name="cost_add_appendage">\u0020%skr</string>

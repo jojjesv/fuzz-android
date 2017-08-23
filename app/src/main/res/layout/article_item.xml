@@ -29,6 +29,23 @@
                 android:clickable="false"
                 android:src="@mipmap/ic_launcher" />
 
+            <!-- New item badge -->
+            <TextView
+                android:id="@+id/new_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:background="@drawable/new_badge_bg"
+                android:clickable="false"
+                android:gravity="center"
+                android:padding="5dp"
+                android:rotation="-10"
+                android:text="@string/new_badge"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:translationX="-16dp"
+                android:translationY="-6dp" />
+
             <TextView
                 android:id="@+id/quantity"
                 android:layout_width="wrap_content"
@@ -39,9 +56,9 @@
                 android:gravity="center"
                 android:minWidth="26dp"
                 android:padding="5dp"
-                android:text="2"
+                android:text="2p"
                 android:textColor="@color/white"
-                android:translationX="8dp"
+                android:translationX="12dp"
                 android:translationY="-8dp" />
 
         </FrameLayout>
@@ -62,7 +79,7 @@
             android:clickable="false"
             android:gravity="center"
             android:text="4 kr"
-            android:textSize="18sp" />
+            android:textSize="22sp" />
     </LinearLayout>
 
 </com.fuzz.android.view.ArticleView>

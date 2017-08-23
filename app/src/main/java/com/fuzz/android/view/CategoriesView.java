@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -45,27 +46,57 @@ public class CategoriesView extends ListView {
             setVisibility(VISIBLE);
         }
 
-        this.transitionValue = val;
+        this.transitionValue = Math.max(0, Math.min(val, 1));
+        val = childTranslateInterpolator.getInterpolation(val);
 
         float translationX;
         View child;
 
-        float a = 0;
         for (int i = 0, n = getChildCount(); i < n; i++) {
             child = getChildAt(i);
-            translationX = -child.getMeasuredWidth() * (1 - childTranslateInterpolator.getInterpolation(Math.max(0, Math.min((val * 0.17447917f - (float) (i * 0.1f) / n) * n, 1))));
+            translationX = -child.getMeasuredWidth() * (1 - val);
             child.setTranslationX(translationX);
-            a = translationX;
         }
     }
 
-    public boolean isVisible(){
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        if (ev.getAction() == MotionEvent.ACTION_UP) {
+            maybeHideFromTouch(ev);
+        }
+        return super.dispatchTouchEvent(ev);
+    }
+
+    private void maybeHideFromTouch(MotionEvent ev) {
+        //  Pixels from the view where touch is ignored
+        int touchDeadZone = (int) (24 * getResources().getDisplayMetrics().density);
+        int[] viewLocation = new int[2];
+        int touchX = (int) ev.getRawX();
+        int touchY = (int) ev.getRawY();
+        View v;
+        for (int i = 0, n = getChildCount(); i < n; i++) {
+            v = getChildAt(i);
+            v.getLocationInWindow(viewLocation);
+            if (touchX > viewLocation[0] - touchDeadZone && touchY > viewLocation[1] - touchDeadZone
+                    && touchX < viewLocation[0] + v.getMeasuredWidth() + touchDeadZone &&
+                    touchY < viewLocation[1] + v.getMeasuredHeight() + touchDeadZone) {
+                return;
+            }
+        }
+
+        //  No views touched
+        changeVisibility(true);
+    }
+
+    public boolean isVisible() {
         return transitionValue > 0;
     }
 
     public void determineVisibility() {
-        final boolean hide = transitionValue < 0.5f;
+        changeVisibility(transitionValue < 0.5f);
+    }
 
+    public void changeVisibility(final boolean hide) {
         ValueAnimator animator = ValueAnimator.ofFloat(transitionValue, hide ? 0 : 1);
         animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override

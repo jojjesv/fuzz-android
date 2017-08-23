@@ -1,11 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:overScrollMode="never"
+    android:scrollbars="none">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:background="@color/shopping_cart_light"
         android:orientation="vertical">
 
         <!-- List of articles
@@ -13,6 +16,7 @@
 
         <com.fuzz.android.view.ArticlesView
             android:id="@+id/selected_articles"
+            android:layout_marginTop="@dimen/activity_vertical_margin"
             android:layout_width="match_parent"
             android:layout_height="128dp" />
 
@@ -20,17 +24,13 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="@dimen/activity_vertical_margin"
-            android:paddingLeft="@dimen/activity_horizontal_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin">
+            android:orientation="vertical">
 
             <!-- Total cost -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp"
+                android:layout_marginLeft="@dimen/activity_horizontal_margin"
                 android:background="@drawable/total_cost_bg"
                 android:orientation="vertical"
                 android:paddingBottom="8dp"
@@ -44,6 +44,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/cost_add_articles"
+                    android:textColor="@color/white"
                     android:textSize="14sp" />
 
                 <TextView
@@ -52,6 +53,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="8dp"
                     android:text="@string/cost_add_below_min"
+                    android:textColor="@color/white"
                     android:textSize="14sp" />
 
                 <TextView
@@ -59,325 +61,367 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/total_cost"
+                    android:textColor="@color/white"
                     android:textSize="16sp" />
             </LinearLayout>
 
-            <TextView
-                style="@style/FormLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/payment_method" />
-
-            <RadioGroup
-                android:id="@+id/payment_methods"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/field_separator"
-                android:orientation="horizontal"
-                android:weightSum="3">
-
-                <RadioButton
-                    android:id="@+id/payment_method_card"
-                    style="@style/PaymentMethodRadio"
-                    android:checked="true"
-                    android:text="@string/payment_option_card" />
-
-                <RadioButton
-                    android:id="@+id/payment_method_swish"
-                    style="@style/PaymentMethodRadio"
-                    android:text="@string/payment_option_swish" />
-
-                <RadioButton
-                    android:id="@+id/payment_method_cash"
-                    style="@style/PaymentMethodRadio"
-                    android:text="@string/payment_option_cash" />
-            </RadioGroup>
-
-            <!-- Extra payment info -->
-
-            <!-- Card payment -->
             <LinearLayout
-                android:id="@+id/card_payment_group"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/field_separator"
+                android:layout_marginLeft="@dimen/small_margin"
+                android:layout_marginRight="@dimen/small_margin"
+                android:background="@drawable/form_background"
+                android:clipChildren="false"
+                android:clipToPadding="false"
                 android:orientation="vertical"
-                android:visibility="gone">
+                android:paddingBottom="48dp"
+                android:paddingLeft="@dimen/activity_horizontal_margin"
+                android:paddingRight="@dimen/activity_horizontal_margin"
+                android:paddingTop="64dp"
+                android:translationZ="8dp">
 
                 <TextView
-                    style="@style/FormLabel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/card_number"
-                    android:textSize="14sp" />
-
-                <EditText
-                    android:id="@+id/card_number_input"
-                    style="@style/EditText"
+                    style="@style/FormLabel.ShoppingCart"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
-                    android:hint="@string/card_num_placeholder"
-                    android:imeOptions="actionNext"
-                    android:inputType="phone"
-                    android:maxLength="19"
-                    android:maxLines="1"
-                    android:nextFocusDown="@+id/expire_date_input"
-                    android:singleLine="true" />
+                    android:text="@string/payment_method" />
 
-                <LinearLayout
+                <RadioGroup
+                    android:id="@+id/payment_methods"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/field_separator"
                     android:orientation="horizontal"
-                    android:weightSum="2">
+                    android:weightSum="3">
+
+                    <RadioButton
+                        android:id="@+id/payment_method_card"
+                        style="@style/PaymentMethodRadio"
+                        android:checked="true"
+                        android:text="@string/payment_option_card" />
+
+                    <RadioButton
+                        android:id="@+id/payment_method_swish"
+                        style="@style/PaymentMethodRadio"
+                        android:text="@string/payment_option_swish" />
+
+                    <RadioButton
+                        android:id="@+id/payment_method_cash"
+                        style="@style/PaymentMethodRadio"
+                        android:text="@string/payment_option_cash" />
+                </RadioGroup>
+
+                <!-- Extra payment info -->
+
+                <!-- Card payment -->
+                <LinearLayout
+                    android:id="@+id/card_payment_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/field_separator"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/FormLabel.ShoppingCart"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/card_number"
+                        android:textSize="14sp" />
+
+                    <EditText
+                        android:id="@+id/card_number_input"
+                        style="@style/EditText.ShoppingCart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="12dp"
+                        android:hint="@string/card_num_placeholder"
+                        android:imeOptions="actionNext"
+                        android:inputType="phone"
+                        android:maxLength="19"
+                        android:maxLines="1"
+                        android:nextFocusDown="@+id/expire_date_input"
+                        android:singleLine="true" />
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="wrap_content"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:orientation="horizontal"
+                        android:weightSum="2">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:clipChildren="false"
+                            android:clipToPadding="false"
+                            android:orientation="vertical"
+                            android:paddingRight="4dp">
+
+                            <TextView
+                                style="@style/FormLabel.ShoppingCart"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/card_expiration"
+                                android:textSize="14sp" />
+
+                            <EditText
+                                android:id="@id/expire_date_input"
+                                style="@style/EditText.ShoppingCart"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:imeOptions="actionNext"
+                                android:maxLength="5"
+                                android:maxLines="1"
+                                android:nextFocusDown="@+id/cvc_input"
+                                android:singleLine="true"
+                                android:text="@string/card_expire_placeholder" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_weight="1"
+                            android:clipChildren="false"
+                            android:clipToPadding="false"
+                            android:orientation="vertical"
+                            android:paddingLeft="4dp">
+
+                            <TextView
+                                style="@style/FormLabel.ShoppingCart"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/card_cvc"
+                                android:textSize="14sp" />
+
+                            <EditText
+                                android:id="@id/cvc_input"
+                                style="@style/EditText.ShoppingCart"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:imeOptions="actionNext"
+                                android:inputType="number"
+                                android:maxLength="3"
+                                android:maxLines="1"
+                                android:nextFocusDown="@+id/billing_address_input"
+                                android:singleLine="true" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Cash info -->
+                <LinearLayout
+                    android:id="@+id/cash_payment_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/field_separator"
+                    android:layout_marginTop="18dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:text="@string/cash_subheading"
+                        android:textSize="17sp" />
+
+                </LinearLayout>
+
+                <!-- Swish info -->
+                <LinearLayout
+                    android:id="@+id/swish_payment_group"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/field_separator"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        style="@style/FormLabel.ShoppingCart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="Swishnummer" />
+
+                    <EditText
+                        style="@style/EditText.ShoppingCart"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:imeOptions="actionNext"
+                        android:nextFocusDown="@+id/billing_address_input" />
+
+                    <LinearLayout
+                        style="@style/ButtonContainer"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:layout_marginTop="8dp"
+                        android:onClick="openSwishApp">
+
+                        <TextView
+                            style="@style/ButtonText"
+                            android:text="@string/open_swish_app" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/textView"
+                    style="@style/FormLabel.ShoppingCart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/billing_address" />
+
+                <EditText
+                    android:id="@id/billing_address_input"
+                    style="@style/EditText.ShoppingCart"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:imeOptions="actionNext"
+                    android:maxLines="1"
+                    android:nextFocusDown="@+id/house_number_input"
+                    android:singleLine="true" />
+
+                <!-- Optional apartment info -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="@dimen/field_separator"
+                    android:layout_marginTop="16dp"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:weightSum="3">
+
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
                         android:orientation="vertical"
                         android:paddingRight="4dp">
 
                         <TextView
-                            style="@style/FormLabel"
-                            android:layout_width="wrap_content"
+                            style="@style/FormLabel.ShoppingCart"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/card_expiration"
-                            android:textSize="14sp" />
+                            android:text="@string/house_number" />
 
                         <EditText
-                            android:id="@id/expire_date_input"
-                            style="@style/EditText"
+                            android:id="@id/house_number_input"
+                            style="@style/EditText.ShoppingCart"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:imeOptions="actionNext"
-                            android:maxLength="5"
                             android:maxLines="1"
-                            android:nextFocusDown="@+id/cvc_input"
-                            android:singleLine="true"
-                            android:text="@string/card_expire_placeholder" />
+                            android:nextFocusDown="@+id/floor_input"
+                            android:singleLine="true" />
+
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
+                        android:orientation="vertical"
+                        android:paddingLeft="4dp"
+                        android:paddingRight="4dp">
+
+                        <TextView
+                            style="@style/FormLabel.ShoppingCart"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/floor" />
+
+                        <EditText
+                            android:id="@id/floor_input"
+                            style="@style/EditText.ShoppingCart"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:imeOptions="actionNext"
+                            android:maxLines="1"
+                            android:nextFocusRight="@+id/door_code_input"
+                            android:singleLine="true" />
+
                     </LinearLayout>
 
                     <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
                         android:layout_weight="1"
+                        android:clipChildren="false"
+                        android:clipToPadding="false"
                         android:orientation="vertical"
                         android:paddingLeft="4dp">
 
                         <TextView
-                            style="@style/FormLabel"
-                            android:layout_width="wrap_content"
+                            style="@style/FormLabel.ShoppingCart"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:text="@string/card_cvc"
-                            android:textSize="14sp" />
+                            android:text="@string/door_code" />
 
                         <EditText
-                            android:id="@id/cvc_input"
-                            style="@style/EditText"
+                            android:id="@id/door_code_input"
+                            style="@style/EditText.ShoppingCart"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:imeOptions="actionNext"
                             android:inputType="number"
-                            android:maxLength="3"
                             android:maxLines="1"
-                            android:nextFocusDown="@+id/billing_address_input"
+                            android:nextFocusDown="@+id/message_input"
                             android:singleLine="true" />
                     </LinearLayout>
+
                 </LinearLayout>
-            </LinearLayout>
-
-            <!-- Cash info -->
-            <LinearLayout
-                android:id="@+id/cash_payment_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/field_separator"
-                android:layout_marginTop="18dp"
-                android:orientation="vertical"
-                android:visibility="gone">
 
                 <TextView
+                    style="@style/FormLabel.ShoppingCart"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/cash_subheading"
-                    android:textSize="17sp" />
-
-            </LinearLayout>
-
-            <!-- Swish info -->
-            <LinearLayout
-                android:id="@+id/swish_payment_group"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/field_separator"
-                android:orientation="vertical"
-                android:visibility="gone">
-
-                <TextView
-                    style="@style/FormLabel"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Swishnummer" />
+                    android:text="@string/message" />
 
                 <EditText
-                    style="@style/EditText"
+                    android:id="@id/message_input"
+                    style="@style/EditText.ShoppingCart"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:imeOptions="actionNext"
-                    android:nextFocusDown="@+id/billing_address_input" />
+                    android:layout_marginBottom="@dimen/field_separator"
+                    android:imeOptions="actionDone" />
 
+                <!-- Submit button -->
                 <LinearLayout
+                    android:id="@+id/place_order"
                     style="@style/ButtonContainer"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center"
                     android:layout_marginTop="8dp"
-                    android:onClick="openSwishApp">
+                    android:layout_gravity="center"
+                    android:background="@drawable/shopping_cart_button_bg"
+                    android:onClick="beginPlacingOrder">
 
                     <TextView
-                        style="@style/ButtonContainerText"
-                        android:text="@string/open_swish_app" />
+                        style="@style/ButtonText"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/place_order"
+                        android:textColor="@color/white"
+                        android:textSize="18sp" />
 
                 </LinearLayout>
-
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/textView"
-                style="@style/FormLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/billing_address" />
-
-            <EditText
-                android:id="@id/billing_address_input"
-                style="@style/EditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:imeOptions="actionNext"
-                android:maxLines="1"
-                android:nextFocusDown="@+id/house_number_input"
-                android:singleLine="true" />
-
-            <!-- Optional apartment info -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/field_separator"
-                android:layout_marginTop="16dp"
-                android:weightSum="3">
-
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingRight="4dp">
-
-                    <TextView
-                        style="@style/FormLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/house_number" />
-
-                    <EditText
-                        android:id="@id/house_number_input"
-                        style="@style/EditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionNext"
-                        android:maxLines="1"
-                        android:nextFocusDown="@+id/floor_input"
-                        android:singleLine="true" />
-
-                </LinearLayout>
-
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingLeft="4dp"
-                    android:paddingRight="4dp">
-
-                    <TextView
-                        style="@style/FormLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/floor" />
-
-                    <EditText
-                        android:id="@id/floor_input"
-                        style="@style/EditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionNext"
-                        android:maxLines="1"
-                        android:nextFocusRight="@+id/door_code_input"
-                        android:singleLine="true" />
-
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingLeft="4dp">
-
-                    <TextView
-                        style="@style/FormLabel"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/door_code" />
-
-                    <EditText
-                        android:id="@id/door_code_input"
-                        style="@style/EditText"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:imeOptions="actionNext"
-                        android:inputType="number"
-                        android:maxLines="1"
-                        android:nextFocusDown="@+id/message_input"
-                        android:singleLine="true" />
-                </LinearLayout>
-
-            </LinearLayout>
-
-            <TextView
-                style="@style/FormLabel"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/message" />
-
-            <EditText
-                android:id="@id/message_input"
-                style="@style/EditText"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="@dimen/field_separator"
-                android:imeOptions="actionDone" />
-
-            <LinearLayout
-                android:id="@+id/place_order"
-                style="@style/ButtonContainer"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:onClick="beginPlacingOrder">
-
-                <TextView
-                    style="@style/ButtonContainerText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/place_order" />
-
             </LinearLayout>
         </LinearLayout>
+
+        <include layout="@layout/about_footer" />
     </LinearLayout>
 </ScrollView>

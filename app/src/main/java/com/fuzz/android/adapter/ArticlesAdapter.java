@@ -31,9 +31,18 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     private RecyclerView.LayoutManager viewLayoutManager;
     private ArrayList<ArticleData> articles;
     private View.OnClickListener itemsOnClickListener;
+    private boolean darkMode;
 
     public ArticlesAdapter(ArticleData[] data) {
         articles = new ArrayList<>(Arrays.asList(data));
+    }
+
+    public boolean isDarkMode() {
+        return darkMode;
+    }
+
+    public void setDarkMode(boolean darkMode) {
+        this.darkMode = darkMode;
     }
 
     public View.OnClickListener getItemsOnClickListener() {
@@ -52,14 +61,16 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     public ArticlesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.article_item, parent, false);
 
-        if (viewLayoutManager instanceof LinearLayoutManager) {
-            //  Fixed-width
-            v.getLayoutParams().width = parent.getResources().getDimensionPixelSize(R.dimen.article_item_width);
-            v.setLayoutParams(v.getLayoutParams());
+        DefaultTypefaces.applyDefaultsToChildren((ViewGroup) v);
+        ArticlesViewHolder holder = new ArticlesViewHolder(v);
+
+        if (darkMode) {
+            int lightColor = parent.getResources().getColor(R.color.white);
+            holder.costView.setTextColor(lightColor);
+            holder.nameView.setTextColor(lightColor);
         }
 
-        DefaultTypefaces.applyDefaultsToChildren((ViewGroup) v);
-        return new ArticlesViewHolder(v);
+        return holder;
     }
 
     @Override
@@ -123,8 +134,14 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         boolean showQuantity = data.quantity > 1;
         holder.quantityView.setVisibility(showQuantity ? View.VISIBLE : View.GONE);
         if (showQuantity) {
-            holder.quantityView.setText(String.valueOf(data.quantity));
+            if (data.quantityString == null){
+                data.quantityString = holder.itemView.getResources().getString(R.string.quantity, data.quantity);
+            }
+
+            holder.quantityView.setText(data.quantityString);
         }
+
+        holder.newBadge.setVisibility(data.isNew ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -144,8 +161,10 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         public String name;
         private Bitmap image;
         private boolean fetchingImage;
+        public boolean isNew;
         private String costString;
         private RoundedBitmapDrawable imageDrawable;
+        private String quantityString;
 
         public ArticleData(int id, int quantity, double cost, String imageUrl, String name) {
             this.id = id;
@@ -166,6 +185,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         public ImageView imageView;
         public TextView quantityView;
         public TextView costView;
+        public View newBadge;
 
         public ArticlesViewHolder(View itemView) {
             super(itemView);
@@ -174,6 +194,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             imageView = (ImageView) itemView.findViewById(R.id.image);
             quantityView = (TextView) itemView.findViewById(R.id.quantity);
             costView = (TextView) itemView.findViewById(R.id.cost);
+            newBadge = (TextView) itemView.findViewById(R.id.new_badge);
         }
     }
 }

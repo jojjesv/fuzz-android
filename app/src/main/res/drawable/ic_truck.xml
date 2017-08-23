@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/base">
+        <inset>
+            <bitmap android:src="@drawable/ic_truck_base" />
+        </inset>
+    </item>
+    <item
+        android:id="@+id/left_wheel"
+        android:right="27dp"
+        android:top="27dp">
+        <rotate
+            android:fromDegrees="0"
+            android:pivotX="50%"
+            android:pivotY="50%">
+
+            <bitmap
+                android:gravity="center"
+                android:src="@drawable/ic_truck_wheel" />
+        </rotate>
+    </item>
+    <item
+        android:id="@+id/right_wheel"
+        android:left="21dp"
+        android:top="27dp">
+        <rotate
+            android:fromDegrees="0"
+            android:pivotX="50%"
+            android:pivotY="50%">
+            <bitmap
+                android:gravity="center"
+                android:src="@drawable/ic_truck_wheel" />
+        </rotate>
+    </item>
+</layer-list>

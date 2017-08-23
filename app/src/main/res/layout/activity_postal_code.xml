@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#90e0d9"
+    android:background="#68cece"
     android:clipChildren="false"
     android:orientation="vertical">
 
@@ -12,7 +12,7 @@
         android:layout_width="450dp"
         android:layout_height="450dp"
         android:background="@drawable/circle"
-        android:backgroundTint="#e87988"
+        android:backgroundTint="#e8587e"
         android:translationX="-54dp"
         android:translationY="-64dp"
         app:translation_duration="45000"
@@ -54,6 +54,7 @@
             android:layout_marginTop="24dp"
             android:gravity="center"
             android:text="@string/input_postal_code"
+            android:textColor="@color/white"
             android:textSize="18sp" />
     </LinearLayout>
 
@@ -63,20 +64,30 @@
         android:layout_width="240dp"
         android:layout_height="80dp"
         android:layout_gravity="center"
+        android:drawableLeft="@drawable/ic_location_48dp"
+        android:drawableTint="@color/red"
         android:gravity="center"
         android:inputType="number"
         android:maxLength="5"
         android:maxLines="1"
+        android:paddingRight="48dp"
         android:singleLine="true"
         android:text="35250"
-        android:textSize="28sp" />
+        android:textSize="36sp" />
+
+    <include
+        layout="@layout/truck_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="64dp" />
 
     <LinearLayout
         style="@style/ButtonContainer"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
-        android:layout_marginBottom="64dp"
+        android:layout_marginBottom="128dp"
         android:onClick="submitPostalCode">
 
         <ImageView
@@ -87,9 +98,11 @@
             android:src="@drawable/ic_continue" />
 
         <TextView
-            style="@style/ButtonContainerText"
+            style="@style/ButtonText"
             android:text="@string/_continue"
             android:textColor="@color/white" />
     </LinearLayout>
+
+    <include layout="@layout/about_footer" />
 
 </FrameLayout>

@@ -2,24 +2,21 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/article_info_bg"
     android:clickable="true"
     android:minHeight="@dimen/dialog_height"
     android:minWidth="@dimen/dialog_width"
     android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_padding_vertical"
-    android:paddingLeft="@dimen/activity_padding_horizontal"
-    android:paddingRight="@dimen/activity_padding_horizontal"
-    android:paddingTop="@dimen/activity_padding_vertical">
+    android:padding="36dp">
 
     <ImageView
         android:id="@+id/image"
         android:layout_width="@dimen/article_image_size_large"
         android:layout_height="@dimen/article_image_size_large"
         android:layout_gravity="center"
-
         android:clickable="false" />
 
-    <TextView
+    <com.fuzz.android.view.HeaderTextView
         android:id="@+id/article_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -27,31 +24,44 @@
         android:clickable="false"
         android:gravity="center"
         android:text="Artikelnamn"
-        android:textSize="17sp" />
+        android:textColor="@color/AI_header"
+        android:textSize="22sp" />
+
 
     <TextView
         android:id="@+id/description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:clickable="false"
-        android:text="Bra för det och det" />
-
-    <com.fuzz.android.view.HeaderTextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_marginLeft="6dp"
+        android:gravity="center"
         android:layout_marginTop="12dp"
         android:clickable="false"
-        android:textColor="@color/white"
-        android:text="@string/article_content"
-        android:textSize="18sp" />
+        android:text="Bra för det och det"
+        android:textColor="@color/AI_text_light"
+        android:textSize="15sp" />
 
-    <TextView
-        android:id="@+id/contents"
-        android:layout_width="match_parent"
+    <LinearLayout
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:clickable="false"
-        android:layout_marginTop="4dp"
-        android:text="Innehåller gluten, E213, och det" />
+        android:layout_marginTop="24dp"
+        android:layout_gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:tint="@color/AI_text"
+            android:src="@drawable/ic_list_24dp" />
+
+        <TextView
+            android:id="@+id/contents"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="6dp"
+            android:layout_marginTop="4dp"
+            android:clickable="false"
+            android:text="Innehåller gluten, E213, och det"
+            android:textColor="@color/AI_text" />
+    </LinearLayout>
 
 </LinearLayout>

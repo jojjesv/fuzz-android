@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="48dp"
+    android:id="@+id/truck">
+
+    <ImageView
+        android:id="@+id/base"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_truck_base" />
+
+    <ImageView
+        android:id="@+id/left_wheel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:translationY="34dp"
+        android:translationX="31dp"
+        android:src="@drawable/ic_truck_wheel" />
+
+    <ImageView
+        android:id="@+id/right_wheel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:translationY="33dp"
+        android:translationX="7dp"
+        android:src="@drawable/ic_truck_wheel" />
+</FrameLayout>

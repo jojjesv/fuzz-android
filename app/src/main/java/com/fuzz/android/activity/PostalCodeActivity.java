@@ -7,14 +7,17 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.fuzz.android.R;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
+import com.fuzz.android.helper.AboutFooterHelper;
 import com.fuzz.android.preferences.PreferenceKeys;
 import com.fuzz.android.view.DefaultTypefaces;
+import com.fuzz.android.view.TruckAnimator;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,16 +36,21 @@ public class PostalCodeActivity extends Activity {
         DefaultTypefaces.setup(getResources());
 
         setContentView(R.layout.activity_postal_code);
+        setupLayout();
         DefaultTypefaces.applyDefaultsToViews(this);
         setupPreferences();
     }
 
-    private void setupPreferences(){
+    private void setupLayout() {
+        TruckAnimator.animate(findViewById(R.id.truck));
+    }
+
+    private void setupPreferences() {
         preferences = getPreferences(MODE_PRIVATE);
 
         String prefPostalCode = preferences.getString(PreferenceKeys.POSTAL_CODE, null);
 
-        if (prefPostalCode != null){
+        if (prefPostalCode != null) {
             //  Has previously successful postal code
             ((EditText) findViewById(R.id.text_input)).setText(prefPostalCode);
         }
@@ -149,7 +157,7 @@ public class PostalCodeActivity extends Activity {
             JSONObject result = new JSONObject(response);
             ShoppingCartActivity.setMinimumCost(Double.parseDouble(result.getString("min_order_cost")));
 
-        } catch (JSONException ex){
+        } catch (JSONException ex) {
             onBackendError();
             return;
         }
@@ -186,5 +194,13 @@ public class PostalCodeActivity extends Activity {
                 //  TODO: Handle error
                 break;
         }
+    }
+
+    public void showFeedbackDialog(View v) {
+        AboutFooterHelper.getInstance().showFeedbackDialog(this);
+    }
+
+    public void showAboutApp(View v) {
+
     }
 }

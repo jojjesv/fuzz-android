@@ -2,8 +2,7 @@
     <string name="app_name">Fuzz</string>
     <string name="eta_notification_title">Fuzz</string>
     <string name="eta_notification_content">Din beställning kommer om %d minuter</string>
-    <string name="article_content">Innehållsförteckning</string>
-    <string name="no_description_or_contents">Ingen ytterligare information finns</string>
+    <string name="no_contents_info">Ingen innehållsinformation finns</string>
     <string name="post_order_header">Beställningen är på väg!</string>
     <string name="post_order_subheader">Vänta lite medan vi bekräftar din beställning.</string>
     <string name="post_order_subheader_confirmed">Din beställning levereras av %s.</string>
@@ -18,7 +17,9 @@
     <string name="postal_code_hint">Skriv postnummer</string>
     <string name="popular">Populärt</string>
     <string name="this_week">denna vecka</string>
-    <string name="new_articles">Nytt i sortimentet</string>
+    <string name="new_badge">Nyhet</string>
+    <string name="contents">Innehåller %s</string>
+    <string name="and">och</string>
     <string name="drag_to_cart">eller hit till kundvagnen</string>
     <string name="drag_to_info">Dra artikeln hit för mer information</string>
     <string name="cart_items">%d</string>
@@ -26,4 +27,9 @@
     <string name="cost">%s kr</string>
     <string name="_continue">Fortsätt</string>
     <string name="ok">Ok</string>
+    <string name="quantity">%dp</string>
+    <string name="article_name_quantity">%1$s %2$d-pack</string>
+    <string name="about_app">Om Fuzz</string>
+    <string name="show_feedback_dialog">Feedback</string>
+    <string name="send_feedback">Skicka</string>
 </resources>
