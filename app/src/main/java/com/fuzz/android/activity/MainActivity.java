@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     }
 
     private void maybeStartTutorial() {
-        boolean start = true;
+        boolean start = false;
         if (start) {
             startTutorial();
         }
@@ -192,12 +192,10 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         boolean isFrontpage = selectedCategories.isEmpty();
 
-        View frontpageHeader = findViewById(R.id.popular_header);
         TextView categoriesHeader = (TextView) findViewById(R.id.category_header);
 
-        frontpageHeader.setVisibility(isFrontpage ? View.VISIBLE : View.GONE);
         if (isFrontpage) {
-            categoriesHeader.setText(R.string.this_week);
+            categoriesHeader.setText(R.string.popular_this_week);
         } else {
             ArrayList<String> categoryNames = new ArrayList<>();
             for (int i = 0, n = categories.length; i < n; i++) {

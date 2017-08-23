@@ -15,12 +15,16 @@ import com.fuzz.android.R;
 import com.fuzz.android.activity.MainActivity;
 import com.fuzz.android.animator.AnimatorAdapter;
 
+import android.os.Handler;
+
 /**
- * Created by Johan on 2017-08-23.
+ * Instructs the user on how to show the list of categories.
  */
 public class CategoriesTutorial {
     private ImageView touchView;
     private CategoriesView categoriesView;
+    private Handler handler;
+    private boolean isHidingTouch;
 
     /**
      * Starts the tutorial.
@@ -28,6 +32,7 @@ public class CategoriesTutorial {
      * @param activity
      */
     public CategoriesTutorial(MainActivity activity) {
+        handler = new Handler();
         categoriesView = (CategoriesView) activity.findViewById(R.id.categories);
         setupTouchView(activity);
     }
@@ -61,7 +66,11 @@ public class CategoriesTutorial {
         animator.addListener(new AnimatorAdapter() {
             @Override
             public void onAnimationEnd(Animator animator) {
-                reverseTouchAnimation((ValueAnimator) animator);
+                if (isHidingTouch) {
+                    delayTouchHide();
+                } else {
+                    reverseTouchAnimation((ValueAnimator) animator);
+                }
             }
         });
         animator.setDuration(1500);
@@ -69,12 +78,33 @@ public class CategoriesTutorial {
     }
 
     private void reverseTouchAnimation(final ValueAnimator original) {
-        new android.os.Handler().postDelayed(new Runnable() {
+        handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 original.reverse();
             }
         }, 3000);
-        original.removeAllListeners();
+        isHidingTouch = true;
+    }
+
+    private void delayTouchHide() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                hideTouch();
+            }
+        }, 2500);
+    }
+
+    private void hideTouch() {
+        touchView.animate()
+                .alpha(0)
+                .setListener(new AnimatorAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        ((ViewGroup)touchView.getParent()).removeView(touchView);
+                    }
+                })
+                .start();
     }
 }

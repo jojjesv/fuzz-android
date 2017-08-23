@@ -20,4 +20,5 @@
     <dimen name="article_item_width">164dp</dimen> <!-- Article item width if in linear layout manager -->
     <dimen name="category_translation_offset">24dp</dimen> <!-- Translation offset which category child lags behind previous sibling -->
     <dimen name="category_touch_x">120dp</dimen>
+    <dimen name="articles_scroll_threshold">8dp</dimen> <!-- Threshold to hide header -->
 </resources>

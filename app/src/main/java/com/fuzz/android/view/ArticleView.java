@@ -30,31 +30,7 @@ public class ArticleView extends LinearLayout {
         isPickedUp = pickedUp;
     }
 
-    @Override
-    public boolean dispatchTouchEvent(MotionEvent ev) {
-        int action = ev.getAction();
-
-        if (canMove()) {
-            if (action == MotionEvent.ACTION_DOWN) {
-                setAlpha(TOUCH_DOWN_ALPHA);
-            } else if (action == MotionEvent.ACTION_UP) {
-                if (!isPickedUp) {
-                    setAlpha(1);
-                } else {
-                    //  Don't set alpha to 1 when up, alpha is managed by articlesview
-                    isPickedUp = false;
-                }
-            }
-        }
-
-        return super.dispatchTouchEvent(ev);
-    }
-
-    private boolean canMove(){
-        ViewParent parent = getParent();
-        if (!(parent instanceof ArticlesView)){
-            return true;
-        }
-        return ((ArticlesView)getParent()).isItemsMovable();
+    public void setHoverEffectEnabled(boolean enabled){
+        setAlpha(enabled ? TOUCH_DOWN_ALPHA : 1);
     }
 }

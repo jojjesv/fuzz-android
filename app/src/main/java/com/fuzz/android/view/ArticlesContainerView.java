@@ -53,7 +53,7 @@ public class ArticlesContainerView extends FrameLayout {
 
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent e) {
+    public boolean dispatchTouchEvent(MotionEvent e) {
         int action = e.getAction();
 
         float x = e.getRawX();
@@ -63,8 +63,9 @@ public class ArticlesContainerView extends FrameLayout {
             case MotionEvent.ACTION_DOWN:
                 initialTouchX = x;
                 initialTouchY = y;
-                articlesView.setScrollable(false);
+
                 wasCategoriesVisible = categoriesView.isVisible();
+                articlesView.setScrollable(false);
                 break;
 
             case MotionEvent.ACTION_MOVE:
@@ -78,7 +79,9 @@ public class ArticlesContainerView extends FrameLayout {
                 if (scrollingDirection == NONE) {
                     if (Math.abs(deltaXInitial) >= scrollThreshold) {
                         scrollingDirection = DIRECTION_HORIZONTAL;
-                        articlesView.setScrollable(false);
+
+                        //  articlesview automatically non-scrollable as categories covers it
+
                     } else if (Math.abs(deltaYInitial) >= scrollThreshold) {
                         scrollingDirection = DIRECTION_VERTICAL;
                         articlesView.setScrollable(true);
@@ -93,7 +96,7 @@ public class ArticlesContainerView extends FrameLayout {
                     fraction = Math.max(0, Math.min(fraction, 1));
 
                     categoriesView.setTransitionValue(fraction);
-                    return false;
+                    //return false;
                 }
 
                 break;
@@ -104,11 +107,10 @@ public class ArticlesContainerView extends FrameLayout {
                     categoriesView.determineVisibility();
                 }
 
-                articlesView.setScrollable(false);
                 scrollingDirection = NONE;
                 break;
         }
 
-        return super.onInterceptTouchEvent(e);
+        return super.dispatchTouchEvent(e);
     }
 }

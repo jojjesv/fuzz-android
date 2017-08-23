@@ -4,7 +4,9 @@ import android.animation.Animator;
 import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
+import android.graphics.Color;
 import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -25,6 +27,10 @@ public class CategoriesView extends ListView {
     private Interpolator childTranslateInterpolator;
     private Interpolator visibilityInterpolator;
     private float transitionValue;
+    /**
+     * R, G and B.
+     */
+    private int[] backgroundColor;
 
     public CategoriesView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -34,6 +40,13 @@ public class CategoriesView extends ListView {
         visibilityInterpolator = new AccelerateDecelerateInterpolator();
 
         onItemsHidden();
+
+        int bgColor = res.getColor(R.color.frontpage_bg);
+        backgroundColor = new int[] {
+                Color.red(bgColor),
+                Color.green(bgColor),
+                Color.blue(bgColor)
+        };
     }
 
     /**
@@ -57,6 +70,9 @@ public class CategoriesView extends ListView {
             translationX = -child.getMeasuredWidth() * (1 - val);
             child.setTranslationX(translationX);
         }
+
+        int newColor = Color.argb((int)(180 * val), backgroundColor[0], backgroundColor[1], backgroundColor[2]);
+        setBackgroundColor(newColor);
     }
 
     @Override
@@ -124,11 +140,5 @@ public class CategoriesView extends ListView {
     }
 
     private void onItemsShown() {
-    }
-
-    @Override
-    public boolean onTouchEvent(MotionEvent ev) {
-        Log.i("cat", ev.toString());
-        return super.onTouchEvent(ev);
     }
 }

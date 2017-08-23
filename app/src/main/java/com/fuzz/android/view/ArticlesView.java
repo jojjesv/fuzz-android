@@ -2,6 +2,7 @@ package com.fuzz.android.view;
 
 import android.animation.Animator;
 import android.content.Context;
+import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
 import android.os.Handler;
@@ -14,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewConfiguration;
 import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.view.ViewPropertyAnimator;
@@ -22,6 +24,7 @@ import android.view.animation.AnticipateInterpolator;
 import android.view.animation.BounceInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -43,6 +46,7 @@ public class ArticlesView extends RecyclerView {
     private ViewPropertyAnimator draggableAnimator;
     private ArticleView draggableArticleView;
     private ArticleView selectedArticleView;
+    private ArticleView pendingSelectedArticleView;
     private Interpolator[] pickUpInterpolators;
     private Interpolator draggableReturnInterpolator;
     /**
@@ -66,6 +70,12 @@ public class ArticlesView extends RecyclerView {
     private android.os.Handler handler;
     private int articleHoldDownDelay = 150;
     private int numOfTouchUps;
+    private View header;
+    private Interpolator headerInterpolatorHide;
+    private Interpolator headerInterpolatorReveal;
+    private int oldScroll;
+    private int scrollThreshold;
+    private ViewConfiguration viewConfig;
 
     public ArticlesView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
@@ -100,6 +110,51 @@ public class ArticlesView extends RecyclerView {
         setLayoutManager(layout);
 
         handler = new Handler();
+
+        Resources res = context.getResources();
+        scrollThreshold = res.getDimensionPixelOffset(R.dimen.articles_scroll_threshold);
+
+        viewConfig = ViewConfiguration.get(context);
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+
+        if (header != null) {
+            int scroll = computeVerticalScrollOffset();
+
+            if (scroll > scrollThreshold && oldScroll <= scrollThreshold) {
+                changeHeaderVisibility(true);
+            } else if (scroll < scrollThreshold && oldScroll >= scrollThreshold) {
+                changeHeaderVisibility(false);
+            }
+
+            oldScroll = scroll;
+        }
+    }
+
+    private void changeHeaderVisibility(boolean hide) {
+        if (hide ? headerInterpolatorHide == null : headerInterpolatorReveal == null) {
+            if (hide) {
+                headerInterpolatorHide = new AnticipateInterpolator();
+            } else {
+                headerInterpolatorReveal = new OvershootInterpolator();
+            }
+        }
+
+        ViewPropertyAnimator anim = header.animate();
+        anim.cancel();
+        anim.translationY(hide ? -header.getMeasuredHeight() : 0)
+                .setInterpolator(hide ? headerInterpolatorHide : headerInterpolatorReveal)
+                .start();
+    }
+
+    @Override
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+
+        header = getRootView().findViewById(R.id.category_header);
     }
 
     public ArticlesContainerView getContainer() {
@@ -155,7 +210,8 @@ public class ArticlesView extends RecyclerView {
     }
 
     @Override
-    public boolean onInterceptTouchEvent(MotionEvent e) {
+    public boolean dispatchTouchEvent(MotionEvent e) {
+
         if (itemsMovable) {
             int action = e.getAction();
 
@@ -165,36 +221,38 @@ public class ArticlesView extends RecyclerView {
                     if (under != null) {
                         attemptPickUpArticle((ArticleView) under);
                     }
-                    return super.onInterceptTouchEvent(e);
-
+                    break;
                 case MotionEvent.ACTION_MOVE:
                     if (selectedArticleView != null) {
                         moveDraggableArticleView(e);
-                    } else {
-                        return super.onInterceptTouchEvent(e);
+                        return true;
                     }
                     break;
 
                 case MotionEvent.ACTION_UP:
                     if (selectedArticleView != null) {
                         restoreDraggableArticleView();
+                        return true;
                     }
 
                     oldTouchX = -1;
                     oldTouchY = -1;
-
-                    numOfTouchUps++;
-                    return super.onInterceptTouchEvent(e);
+                    break;
             }
-        } else {
-            return super.onInterceptTouchEvent(e);
         }
 
-        return false;
+        return super.dispatchTouchEvent(e);
+    }
+
+    @Override
+    public void onScrollStateChanged(int state) {
+        super.onScrollStateChanged(state);
     }
 
     private void restoreDraggableArticleView() {
         final ArticleView selectedArticle = selectedArticleView;
+
+        selectedArticle.setPickedUp(false);
 
         if (draggableOverCart) {
             onAddedToShoppingCart(selectedArticleView);
@@ -348,16 +406,19 @@ public class ArticlesView extends RecyclerView {
      *
      * @param selectedView
      */
-    private void attemptPickUpArticle(final ArticleView selectedView) {
+    private void attemptPickUpArticle(ArticleView selectedView) {
         //  Must match on delayed run() = touch not interrupted
         final int NUM_TOUCH_UPS = numOfTouchUps;
+        selectedView.setHoverEffectEnabled(true);
+
+        pendingSelectedArticleView = selectedView;
 
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
                 if (container.getScrollingDirection() == ArticlesContainerView.NONE) {
                     if (NUM_TOUCH_UPS == numOfTouchUps) {
-                        onPickedUpArticle(selectedView);
+                        onPickedUpArticle(pendingSelectedArticleView);
                     }
                 }
             }
