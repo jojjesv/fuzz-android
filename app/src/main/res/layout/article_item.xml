@@ -24,6 +24,7 @@
 
             <ImageView
                 android:id="@+id/image"
+                android:foreground="@drawable/gloss"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:clickable="false"

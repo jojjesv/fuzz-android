@@ -77,7 +77,8 @@ public class ArticlesContainerView extends FrameLayout {
                 float deltaXInitial = x - initialTouchX;
                 float deltaYInitial = y - initialTouchY;
                 if (scrollingDirection == NONE) {
-                    if (Math.abs(deltaXInitial) >= scrollThreshold) {
+                    if (deltaXInitial >= scrollThreshold) {
+                        //  Only check if right dragging
                         scrollingDirection = DIRECTION_HORIZONTAL;
 
                         //  articlesview automatically non-scrollable as categories covers it

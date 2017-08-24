@@ -7,13 +7,65 @@
     android:layout_height="match_parent"
     tools:context="com.fuzz.android.activity.MainActivity">
 
-    <LinearLayout
+    <FrameLayout
         android:id="@+id/root"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/frontpage_bg"
         android:clipChildren="false"
         android:orientation="vertical">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="64dp">
+
+            <!-- Frontpage items -->
+            <com.fuzz.android.view.ArticlesContainerView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingTop="12dp">
+
+                <com.fuzz.android.view.HeaderTextView
+                    android:id="@+id/category_header"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/popular_this_week"
+                    android:textColor="@color/white"
+                    android:textSize="24sp" />
+
+                <com.fuzz.android.view.ArticlesView
+                    android:id="@+id/articles"
+                    android:layout_width="match_parent"
+                    android:paddingTop="48dp"
+                    android:layout_height="match_parent"
+                    android:clipToPadding="false"
+                    android:clickable="true" />
+
+                <!-- Categories button -->
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:clickable="true"
+                    android:onClick="showCategories"
+                    android:src="@drawable/categories"
+                    android:stateListAnimator="@animator/touchable" />
+
+                <!-- Categories -->
+                <com.fuzz.android.view.CategoriesView
+                    android:id="@+id/categories"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/frontpage_bg"
+                    android:clipChildren="false"
+                    android:clipToPadding="false"
+                    android:divider="@null"
+                    android:listSelector="@android:color/transparent"
+                    android:scrollbars="none" />
+            </com.fuzz.android.view.ArticlesContainerView>
+
+        </FrameLayout>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -131,57 +183,7 @@
 
         </RelativeLayout>
 
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <!-- Frontpage items -->
-            <com.fuzz.android.view.ArticlesContainerView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:paddingTop="12dp">
-
-                <com.fuzz.android.view.HeaderTextView
-                    android:id="@+id/category_header"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/popular_this_week"
-                    android:textColor="@color/white"
-                    android:textSize="24sp" />
-
-                <com.fuzz.android.view.ArticlesView
-                    android:id="@+id/articles"
-                    android:layout_width="match_parent"
-                    android:paddingTop="48dp"
-                    android:layout_height="match_parent"
-                    android:clipToPadding="false"
-                    android:clickable="true" />
-
-                <!-- Categories button -->
-                <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:clickable="true"
-                    android:onClick="showCategories"
-                    android:src="@drawable/categories"
-                    android:stateListAnimator="@animator/touchable" />
-
-                <!-- Categories -->
-                <com.fuzz.android.view.CategoriesView
-                    android:id="@+id/categories"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:background="@color/frontpage_bg"
-                    android:clipChildren="false"
-                    android:clipToPadding="false"
-                    android:divider="@null"
-                    android:listSelector="@android:color/transparent"
-                    android:scrollbars="none" />
-            </com.fuzz.android.view.ArticlesContainerView>
-
-        </FrameLayout>
-    </LinearLayout>
+    </FrameLayout>
 
     <!--
     For debugging bounds

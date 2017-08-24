@@ -210,6 +210,11 @@ public class ArticlesView extends RecyclerView {
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent e) {
+        return super.onInterceptTouchEvent(e);
+    }
+
+    @Override
     public boolean dispatchTouchEvent(MotionEvent e) {
 
         if (itemsMovable) {
@@ -230,13 +235,22 @@ public class ArticlesView extends RecyclerView {
                     break;
 
                 case MotionEvent.ACTION_UP:
-                    if (selectedArticleView != null) {
+                    boolean hasSelectedArticle = selectedArticleView != null;
+                    if (hasSelectedArticle) {
                         restoreDraggableArticleView();
-                        return true;
+                    } else {
+                        //  Alpha is managed otherwise
+                        releasePendingSelectedArticle();
                     }
 
                     oldTouchX = -1;
                     oldTouchY = -1;
+
+                    selectedArticleView = null;
+
+                    if (hasSelectedArticle) {
+                        return true;
+                    }
                     break;
             }
         }
@@ -244,15 +258,24 @@ public class ArticlesView extends RecyclerView {
         return super.dispatchTouchEvent(e);
     }
 
+    private void releasePendingSelectedArticle() {
+        if (pendingSelectedArticleView != null) {
+            pendingSelectedArticleView.setHoverEffectEnabled(false);
+            pendingSelectedArticleView = null;
+        }
+    }
+
     @Override
     public void onScrollStateChanged(int state) {
         super.onScrollStateChanged(state);
+
+        if (state == SCROLL_STATE_DRAGGING) {
+            releasePendingSelectedArticle();
+        }
     }
 
     private void restoreDraggableArticleView() {
         final ArticleView selectedArticle = selectedArticleView;
-
-        selectedArticle.setPickedUp(false);
 
         if (draggableOverCart) {
             onAddedToShoppingCart(selectedArticleView);
@@ -416,10 +439,10 @@ public class ArticlesView extends RecyclerView {
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                if (container.getScrollingDirection() == ArticlesContainerView.NONE) {
-                    if (NUM_TOUCH_UPS == numOfTouchUps) {
-                        onPickedUpArticle(pendingSelectedArticleView);
-                    }
+                if (pendingSelectedArticleView != null &&
+                        container.getScrollingDirection() == ArticlesContainerView.NONE &&
+                        NUM_TOUCH_UPS == numOfTouchUps) {
+                    onPickedUpArticle(pendingSelectedArticleView);
                 }
             }
         }, articleHoldDownDelay);
