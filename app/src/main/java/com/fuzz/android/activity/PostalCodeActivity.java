@@ -4,8 +4,11 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.view.animation.Interpolator;
+import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -29,20 +32,75 @@ import org.json.JSONObject;
 public class PostalCodeActivity extends Activity {
     private String lastSubmittedPostalCode;
     private SharedPreferences preferences;
+    private android.os.Handler handler;
+    private Interpolator viewInterpolator;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         DefaultTypefaces.setup(getResources());
 
+        handler = new Handler();
+        viewInterpolator = new OvershootInterpolator();
+
         setContentView(R.layout.activity_postal_code);
-        setupLayout();
         DefaultTypefaces.applyDefaultsToViews(this);
+
+        setupLayout();
+        animateLayout();
+
         setupPreferences();
     }
 
     private void setupLayout() {
         TruckAnimator.animate(findViewById(R.id.truck));
+    }
+
+    private void animateLayout() {
+        int baseDelay = 200;
+        animateView(findViewById(R.id.header), 0);
+        animateView(findViewById(R.id.subheader), baseDelay);
+        animateView(findViewById(R.id.text_input), baseDelay * 2);
+        animateView(findViewById(R.id.submit), baseDelay * 3);
+        animateTruckView(findViewById(R.id.truck), baseDelay * 8);
+    }
+
+    private void animateView(final View v, int delay) {
+        v.setVisibility(View.INVISIBLE);
+
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                v.setVisibility(View.VISIBLE);
+                v.setAlpha(0);
+                v.setScaleX(0.6f);
+                v.setScaleY(0.6f);
+
+                v.animate()
+                        .alpha(1)
+                        .scaleX(1f)
+                        .scaleY(1f)
+                        .setDuration(500)
+                        .setInterpolator(viewInterpolator);
+            }
+        }, delay);
+    }
+
+    private void animateTruckView(final View v, int delay) {
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        v.setTranslationX(screenWidth * 0.5f);
+
+        v.setVisibility(View.INVISIBLE);
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                v.setVisibility(View.VISIBLE);
+                v.animate()
+                        .translationX(0)
+                        .setDuration(400)
+                        .start();
+            }
+        }, delay);
     }
 
     private void setupPreferences() {

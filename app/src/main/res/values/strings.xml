@@ -13,7 +13,7 @@
         <item>Skördar snacks</item>
     </string-array>
     <string name="welcome">Hejsan!</string>
-    <string name="input_postal_code">Skriv in ditt postnummer och se\nifall vi levererar till det.</string>
+    <string name="input_postal_code">Skriv in ditt postnummer och se\nom vi levererar till det.</string>
     <string name="postal_code_hint">Skriv postnummer</string>
     <string name="popular_this_week">Populärt denna vecka</string>
     <string name="new_badge">Nyhet</string>
