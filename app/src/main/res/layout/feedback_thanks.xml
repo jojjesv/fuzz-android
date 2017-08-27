@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="240dp"
+    android:layout_height="96dp"
+    android:minWidth="240dp"
+    android:minHeight="96dp"
+    android:orientation="vertical"
+    android:background="@drawable/feedback_thanks_bg"
+    android:padding="28dp">
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:textColor="@color/white"
+        android:text="@string/feedback_thanks"
+        android:textSize="18sp" />
+
+</FrameLayout>

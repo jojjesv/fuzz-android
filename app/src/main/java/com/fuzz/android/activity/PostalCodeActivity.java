@@ -7,14 +7,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.view.View;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
-import android.widget.ImageView;
 
 import com.fuzz.android.R;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
+import com.fuzz.android.fragment.AboutAppFragment;
 import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
 import com.fuzz.android.helper.AboutFooterHelper;
@@ -22,7 +23,6 @@ import com.fuzz.android.preferences.PreferenceKeys;
 import com.fuzz.android.view.DefaultTypefaces;
 import com.fuzz.android.view.TruckAnimator;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,6 +50,8 @@ public class PostalCodeActivity extends Activity {
         animateLayout();
 
         setupPreferences();
+
+        fetchConfig();
     }
 
     private void setupLayout() {
@@ -97,6 +99,7 @@ public class PostalCodeActivity extends Activity {
                 v.setVisibility(View.VISIBLE);
                 v.animate()
                         .translationX(0)
+                        .setInterpolator(new DecelerateInterpolator())
                         .setDuration(400)
                         .start();
             }
@@ -148,7 +151,7 @@ public class PostalCodeActivity extends Activity {
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
             fetchCategories(mainIntent);
         } else {
-            new AlertDialog(R.string.undeliverable_header, R.string.undeliverable_message,
+            new AlertDialog(this, R.string.undeliverable_header, R.string.undeliverable_message,
                     new OneButtonAction(R.string.ok, null)).show(getFragmentManager(), null);
         }
     }
@@ -179,8 +182,6 @@ public class PostalCodeActivity extends Activity {
 
         intent.putExtra("categories_response", response);
 
-        //  Config's next up
-        fetchConfig(intent);
         //  Ready to start main activity
         startActivity(intent);
         finish();
@@ -189,11 +190,11 @@ public class PostalCodeActivity extends Activity {
     /**
      * Fetches configuration.
      */
-    private void fetchConfig(final Intent intent) {
-        BackendCom.request("out=config&names=min_order_cost", new byte[0], new BackendCom.RequestCallback() {
+    private void fetchConfig() {
+        BackendCom.request("out=config&names=min_order_cost,company_address,company_email,company_name,company_phone_num", new byte[0], new BackendCom.RequestCallback() {
             @Override
             public void onResponse(String response) {
-                parseConfigResponse(response, intent);
+                parseConfigResponse(response);
             }
 
             @Override
@@ -203,7 +204,7 @@ public class PostalCodeActivity extends Activity {
         });
     }
 
-    private void parseConfigResponse(String response, Intent intent) {
+    private void parseConfigResponse(String response) {
         if (response.length() == 0) {
             //  No config?
             onBackendError();
@@ -212,17 +213,31 @@ public class PostalCodeActivity extends Activity {
 
         try {
 
-            JSONObject result = new JSONObject(response);
-            ShoppingCartActivity.setMinimumCost(Double.parseDouble(result.getString("min_order_cost")));
+            JSONObject config = new JSONObject(response);
+            ShoppingCartActivity.setMinimumCost(Double.parseDouble(config.getString("min_order_cost")));
+            AboutAppFragment.setFromConfig(config);
 
         } catch (JSONException ex) {
             onBackendError();
             return;
         }
 
-        //  Ready to start main activity
-        startActivity(intent);
-        finish();
+        animateFooter();
+    }
+
+    /**
+     * Animates the footer once config has been fetched.
+     */
+    private void animateFooter() {
+        View footer = findViewById(R.id.about_footer);
+
+        footer.setVisibility(View.VISIBLE);
+        footer.setAlpha(0);
+        footer.setTranslationY(footer.getMeasuredHeight() * 0.5f);
+        footer.animate()
+                .translationY(0)
+                .alpha(1)
+                .start();
     }
 
     /**
@@ -259,6 +274,6 @@ public class PostalCodeActivity extends Activity {
     }
 
     public void showAboutApp(View v) {
-
+        AboutFooterHelper.getInstance().showAboutApp(this);
     }
 }

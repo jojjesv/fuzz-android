@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.DialogFragment;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
@@ -17,7 +18,16 @@ import com.fuzz.android.backend.BackendCom;
 /**
  * Dialog fragment for sending feedback.
  */
-public class FeedbackFragment extends DialogFragment {
+public class FeedbackFragment extends BaseDialogFragment {
+    /**
+     * Needed when showing thanks dialog.
+     */
+    private Activity activity;
+
+    public FeedbackFragment(Activity activity) {
+        this.activity = activity;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
@@ -64,7 +74,17 @@ public class FeedbackFragment extends DialogFragment {
         });
     }
 
-    private void parseSendFeedbackResponse(String response){
+    private void parseSendFeedbackResponse(String response) {
         dismiss();
+        new android.os.Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showThanks();
+            }
+        }, 500);
+    }
+
+    private void showThanks() {
+        new FeedbackThanksFragment().show(activity.getFragmentManager(), null);
     }
 }

@@ -2,6 +2,7 @@ package com.fuzz.android.fragment.dialog;
 
 import android.app.Dialog;
 import android.app.DialogFragment;
+import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -12,21 +13,22 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.fuzz.android.R;
+import com.fuzz.android.fragment.BaseDialogFragment;
 import com.fuzz.android.view.DefaultTypefaces;
 
 /**
  * A custom alert dialog.
  */
-public class AlertDialog extends DialogFragment {
+public class AlertDialog extends BaseDialogFragment {
     private DialogActions actions;
 
     private String header;
     private String text;
 
-    public AlertDialog(@StringRes int header, @StringRes int text, @Nullable DialogActions actions) {
+    public AlertDialog(Context context, @StringRes int header, @StringRes int text, @Nullable DialogActions actions) {
         this.actions = actions;
-        this.header = getString(header);
-        this.text = getString(text);
+        this.header = context.getString(header);
+        this.text = context.getString(text);
     }
 
     public AlertDialog(String header, String text, @Nullable DialogActions actions) {
@@ -41,7 +43,7 @@ public class AlertDialog extends DialogFragment {
         View root = inflater.inflate(R.layout.alert_dialog, container, false);
 
         ((TextView) root.findViewById(android.R.id.title)).setText(header);
-        ((TextView) root.findViewById(android.R.id.text1)).setText(text);
+        ((TextView) root.findViewById(R.id.text)).setText(text);
 
         if (actions != null) {
             ViewGroup actionsContainer = (ViewGroup) root.findViewById(R.id.actions_container);
@@ -61,10 +63,12 @@ public class AlertDialog extends DialogFragment {
 
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog d = super.onCreateDialog(savedInstanceState);
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
 
-        //d.getWindow().getAttributes().windowAnimations = R.style.AlertDialogAnimations;
+        Resources res = getResources();
+        dialog.getWindow().setLayout(res.getDimensionPixelSize(R.dimen.dialog_width),
+                res.getDimensionPixelSize(R.dimen.dialog_height));
 
-        return d;
+        return dialog;
     }
 }

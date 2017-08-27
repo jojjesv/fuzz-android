@@ -81,14 +81,14 @@ public class OrderEtaTimer extends TextView {
         setText(timerTextBuilder.toString());
     }
 
-    public void startCountdown(int minutes) {
+    public void startCountdown(int seconds) {
         if (countdownAnimator != null) {
             //  Already started
             return;
         }
 
         countdownAnimator = ValueAnimator.ofFloat(360, 0);
-        countdownAnimator.setDuration(60000 * minutes);
+        countdownAnimator.setDuration(1000 * seconds);
         countdownAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
@@ -99,10 +99,10 @@ public class OrderEtaTimer extends TextView {
         countdownAnimator.setInterpolator(new LinearInterpolator());
         countdownAnimator.start();
 
-        final int MINS = minutes;
+        final int SECONDS = seconds;
         final android.os.Handler ticker = new Handler();
         ticker.post(new Runnable() {
-            int secondsRemaining = MINS * 60;
+            int secondsRemaining = SECONDS;
 
             @Override
             public void run() {

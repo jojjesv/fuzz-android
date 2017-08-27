@@ -2,6 +2,7 @@ package com.fuzz.android.helper;
 
 import android.app.Activity;
 
+import com.fuzz.android.fragment.AboutAppFragment;
 import com.fuzz.android.fragment.FeedbackFragment;
 
 /**
@@ -17,8 +18,13 @@ public class AboutFooterHelper {
         return instance;
     }
 
+    public void showAboutApp(Activity activity) {
+        AboutAppFragment dialog = new AboutAppFragment();
+        dialog.show(activity.getFragmentManager(), null);
+    }
+
     public void showFeedbackDialog(Activity activity) {
-        FeedbackFragment dialog = new FeedbackFragment();
+        FeedbackFragment dialog = new FeedbackFragment(activity);
         dialog.show(activity.getFragmentManager(), null);
     }
 }

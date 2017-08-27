@@ -1,36 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/layout_speech_bg"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:orientation="vertical"
+    android:minHeight="@dimen/dialog_height"
+    android:minWidth="@dimen/dialog_width"
     android:padding="24dp">
 
     <TextView
+        style="@style/DialogHeader"
         android:id="@android:id/title"
         android:layout_width="match_parent"
+        android:layout_marginBottom="18dp"
         android:layout_height="wrap_content"
-        android:paddingTop="0dp"
         android:text="Title" />
 
     <TextView
         android:id="@+id/text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_above="@+id/actions_container"
+        android:layout_below="@android:id/title"
+        android:layout_gravity="center"
         android:gravity="center"
         android:text="Message"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
 
     <LinearLayout
-        android:id="@+id/actions_container"
-        android:layout_width="match_parent"
+        android:id="@id/actions_container"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="bottom|center"
         android:layout_marginTop="24dp"
         android:clipChildren="false"
         android:clipToPadding="false"
         android:orientation="vertical">
 
     </LinearLayout>
-
-</LinearLayout>
+</RelativeLayout>

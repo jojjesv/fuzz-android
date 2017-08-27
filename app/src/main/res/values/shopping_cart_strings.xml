@@ -23,4 +23,9 @@
     <string name="open_swish_app">Öppna Swish-appen</string>
     <string name="swish_app_not_found">Swish appen hittades inte</string>
     <string name="something_wrong">Något gick fel</string>
+    <string name="invalid_form_header">Ogiltiga uppgifter</string>
+    <string name="invalid_billing_address">Ange din adress.</string>
+    <string name="invalid_card_number">Kontrollera ditt kortnummer.</string>
+    <string name="invalid_card_expire">Kontrollera ditt korts utgångsdatum.</string>
+    <string name="invalid_card_cvc">Kontrollera ditt korts CVC-kod.</string>
 </resources>

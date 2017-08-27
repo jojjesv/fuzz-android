@@ -147,6 +147,7 @@ public class ArticlesView extends RecyclerView {
         anim.cancel();
         anim.translationY(hide ? -header.getMeasuredHeight() : 0)
                 .setInterpolator(hide ? headerInterpolatorHide : headerInterpolatorReveal)
+                .alpha(hide ? 0 : 1)
                 .start();
     }
 
@@ -567,6 +568,11 @@ public class ArticlesView extends RecyclerView {
         ImageView toImage = (ImageView) to.findViewById(R.id.image);
 
         toImage.setImageDrawable(fromImage.getDrawable());
+
+        View fromNewBadge = from.findViewById(R.id.new_badge);
+        View toNewBadge = to.findViewById(R.id.new_badge);
+
+        toNewBadge.setVisibility(fromNewBadge.getVisibility());
     }
 
     @Override

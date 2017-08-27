@@ -5,16 +5,12 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Color;
-import android.graphics.Rect;
-import android.graphics.drawable.ColorDrawable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
-import android.view.animation.LinearInterpolator;
 import android.widget.ListView;
 
 import com.fuzz.android.R;
@@ -31,6 +27,7 @@ public class CategoriesView extends ListView {
      * R, G and B.
      */
     private int[] backgroundColor;
+    private ArticlesContainerView container;
 
     public CategoriesView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -41,12 +38,20 @@ public class CategoriesView extends ListView {
 
         onItemsHidden();
 
-        int bgColor = res.getColor(R.color.frontpage_bg);
+        int bgColor = res.getColor(R.color.orange);
         backgroundColor = new int[] {
                 Color.red(bgColor),
                 Color.green(bgColor),
                 Color.blue(bgColor)
         };
+    }
+
+    public ArticlesContainerView getContainer() {
+        return container;
+    }
+
+    public void setContainer(ArticlesContainerView container) {
+        this.container = container;
     }
 
     /**
@@ -77,7 +82,7 @@ public class CategoriesView extends ListView {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_UP) {
+        if (ev.getAction() == MotionEvent.ACTION_UP && container.getScrollingDirection() == ArticlesContainerView.NONE) {
             maybeHideFromTouch(ev);
         }
         return super.dispatchTouchEvent(ev);

@@ -98,16 +98,21 @@
                         android:id="@+id/payment_method_card"
                         style="@style/PaymentMethodRadio"
                         android:checked="true"
+                        android:drawableBottom="@drawable/ic_card"
+                        android:drawableTint="@color/white"
+                        android:textColor="@color/white"
                         android:text="@string/payment_option_card" />
 
                     <RadioButton
                         android:id="@+id/payment_method_swish"
                         style="@style/PaymentMethodRadio"
+                        android:drawableBottom="@drawable/ic_swish"
                         android:text="@string/payment_option_swish" />
 
                     <RadioButton
                         android:id="@+id/payment_method_cash"
                         style="@style/PaymentMethodRadio"
+                        android:drawableBottom="@drawable/ic_card"
                         android:text="@string/payment_option_cash" />
                 </RadioGroup>
 

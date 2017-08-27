@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -15,6 +18,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.Interpolator;
 import android.widget.EditText;
+import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
 
@@ -151,10 +155,36 @@ public class ShoppingCartActivity extends Activity {
 
     private void setupRadioGroups() {
         RadioGroup paymentMethods = (RadioGroup) findViewById(R.id.payment_methods);
-        paymentMethods.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
+        RadioGroup.OnCheckedChangeListener checkedChangeListener = new RadioGroup.OnCheckedChangeListener() {
+            int textSelectedColor;
+            int drawableSelectedColor;
+            int textNormalColor;
+            int drawableNormalColor;
+
+            {
+                Resources res = getResources();
+                textSelectedColor = drawableSelectedColor = res.getColor(R.color.white);
+                textNormalColor = res.getColor(R.color.payment_method_text_color);
+                drawableNormalColor = res.getColor(R.color.payment_method_icon_tint);
+            }
+
+            private RadioButton previousRadioView;
+            private int compoundDrawableIndex = 3;
+
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, @IdRes int id) {
                 paymentInfoGroupId = id;
+
+                RadioButton radioView = (RadioButton)radioGroup.findViewById(id);
+                DrawableCompat.setTint(radioView.getCompoundDrawables()[compoundDrawableIndex], drawableSelectedColor);
+                radioView.setTextColor(textSelectedColor);
+
+                if (previousRadioView != null){
+                    //  Deselect previous
+                    DrawableCompat.setTint(previousRadioView.getCompoundDrawables()[compoundDrawableIndex], drawableNormalColor);
+                    previousRadioView.setTextColor(textNormalColor);
+                }
+                previousRadioView = radioView;
 
                 switch (id) {
                     case R.id.payment_method_card:
@@ -168,7 +198,10 @@ public class ShoppingCartActivity extends Activity {
                         break;
                 }
             }
-        });
+        };
+
+        paymentMethods.setOnCheckedChangeListener(checkedChangeListener);
+        checkedChangeListener.onCheckedChanged(paymentMethods, paymentMethods.getCheckedRadioButtonId());
     }
 
     public void openSwishApp(View v) {
@@ -314,19 +347,27 @@ public class ShoppingCartActivity extends Activity {
     }
 
     public void beginPlacingOrder(@Nullable View v) {
-        if (!validateForm()) {
+        String invalidFormMessage = validateForm();
+        if (invalidFormMessage != null) {
+            //  Has error message
+            new AlertDialog(getString(R.string.invalid_form_header), invalidFormMessage, new OneButtonAction(R.string.ok, null))
+                .show(getFragmentManager(), null);
             return;
         }
 
         placeOrder();
     }
 
-    private boolean validateForm(){
+    /**
+     * Validates the form.
+     * @return Error message, or null if form is valid.
+     */
+    private String validateForm(){
         EditText billingAddress = (EditText) findViewById(R.id.billing_address_input);
 
         if (billingAddress.getText().length() < 3) {
             onFieldInvalid(billingAddress);
-            return false;
+            return getString(R.string.invalid_billing_address);
         }
 
         switch (paymentInfoGroupId) {
@@ -335,26 +376,26 @@ public class ShoppingCartActivity extends Activity {
                 EditText cardNumber = (EditText)findViewById(R.id.card_number_input);
                 if (cardNumber.getText().length() != 4 * 4 + 3) {
                     onFieldInvalid(cardNumber);
-                    return false;
+                    return getString(R.string.invalid_card_number);
                 }
 
                 EditText expire = (EditText)findViewById(R.id.expire_date_input);
                 Editable expireText = expire.getText();
                 if (expireText.length() != 5 || !expireText.toString().matches("\\d+\\/\\d+")) {
-                    onFieldInvalid(billingAddress);
-                    return false;
+                    onFieldInvalid(expire);
+                    return getString(R.string.invalid_card_number);
                 }
 
                 EditText cvc = (EditText)findViewById(R.id.cvc_input);
                 if (cvc.getText().length() != 3) {
                     onFieldInvalid(cvc);
-                    return false;
+                    return getString(R.string.invalid_card_cvc);
                 }
 
                 break;
         }
 
-        return true;
+        return null;
     }
 
     /**
@@ -517,7 +558,8 @@ public class ShoppingCartActivity extends Activity {
         Log.e(getClass().getSimpleName(), "Order placed failed. Msg: " + message);
 
         if (message != null) {
-            new AlertDialog(getString(R.string.something_wrong), message, new OneButtonAction(R.string.ok, null));
+            new AlertDialog(getString(R.string.something_wrong), message, new OneButtonAction(R.string.ok, null))
+                    .show(getFragmentManager(), null);
         }
     }
 
@@ -560,6 +602,6 @@ public class ShoppingCartActivity extends Activity {
     }
 
     public void showAboutApp(View v) {
-
+        AboutFooterHelper.getInstance().showAboutApp(this);
     }
 }

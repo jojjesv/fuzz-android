@@ -27,7 +27,7 @@ import org.json.JSONObject;
 /**
  * Shows info about a specific article.
  */
-public class ArticleInfoFragment extends DialogFragment {
+public class ArticleInfoFragment extends BaseDialogFragment {
     private View view;
     private ArticlesAdapter.ArticleData article;
 
@@ -73,16 +73,6 @@ public class ArticleInfoFragment extends DialogFragment {
                 image.setImageDrawable(drawable);
             }
         });
-    }
-
-    @Override
-    public Dialog onCreateDialog(Bundle savedInstanceState) {
-        Dialog dialog = super.onCreateDialog(savedInstanceState);
-        Window window = dialog.getWindow();
-        window.getDecorView().setBackground(null);
-        window.getAttributes().windowAnimations = R.style.InfoDialogAnimations;
-
-        return dialog;
     }
 
     public void fetchArticleInfo(ArticlesAdapter.ArticleData article) {

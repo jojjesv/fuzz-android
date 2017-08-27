@@ -44,6 +44,7 @@ public class ArticlesContainerView extends FrameLayout {
         categoriesView = (CategoriesView) findViewById(R.id.categories);
         articlesView = (ArticlesView) findViewById(R.id.articles);
 
+        categoriesView.setContainer(this);
         articlesView.setContainer(this);
     }
 
@@ -77,7 +78,7 @@ public class ArticlesContainerView extends FrameLayout {
                 float deltaXInitial = x - initialTouchX;
                 float deltaYInitial = y - initialTouchY;
                 if (scrollingDirection == NONE) {
-                    if (deltaXInitial >= scrollThreshold) {
+                    if ((categoriesView.isVisible() ? Math.abs(deltaXInitial) : deltaXInitial) >= scrollThreshold) {
                         //  Only check if right dragging
                         scrollingDirection = DIRECTION_HORIZONTAL;
 

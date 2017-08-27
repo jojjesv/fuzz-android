@@ -10,7 +10,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".activity.MainActivity"></activity>
         <activity android:name=".activity.ShoppingCartActivity"></activity>
-        <activity android:name=".activity.PostOrderActivity"></activity>
+        <activity android:name=".activity.PostOrderActivity" android:theme="@style/PostalCodeActivity"></activity>
         <activity android:name=".activity.PostalCodeActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

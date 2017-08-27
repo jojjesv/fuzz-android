@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#fde689"
+    android:background="#ffdd4a"
     android:orientation="vertical">
 
     <!-- Background circle-->
@@ -11,7 +11,7 @@
         android:layout_width="450dp"
         android:layout_height="450dp"
         android:background="@drawable/circle"
-        android:backgroundTint="#fd8181"
+        android:backgroundTint="#d25469"
         android:translationX="-54dp"
         android:translationY="-64dp"
         app:translation_duration="45000"
@@ -23,7 +23,7 @@
         android:layout_height="180dp"
         android:layout_gravity="bottom|right"
         android:background="@drawable/circle"
-        android:backgroundTint="#a88eea"
+        android:backgroundTint="#1a9ad7"
         android:translationX="20dp"
         android:translationY="40dp"
         app:translation_duration="60000"
@@ -34,6 +34,8 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
         android:layout_marginTop="48dp"
         android:orientation="vertical">
 
@@ -74,11 +76,16 @@
     <!-- Trivial message -->
     <TextView
         android:id="@+id/trivial_messages"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
+        android:background="@drawable/layout_speech_bg"
+        android:paddingRight="16dp"
+        android:paddingLeft="16dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp"
+        android:textColor="@color/blue"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="bottom|center"
         android:layout_marginBottom="64dp"
-        android:gravity="center"
-        android:text=""
-        android:textSize="16sp" />
+        android:text="Meddelande"
+        android:textSize="17sp" />
 </FrameLayout>

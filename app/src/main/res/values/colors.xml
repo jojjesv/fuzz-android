@@ -1,18 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="primary">#addcd6</color>
-    <color name="secondary">#f7a8a3</color>
-    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="primary">#77b4e1</color>
+    <color name="secondary">#f15524</color>
+    <color name="primary_dark">#0086cf</color>
     <color name="black">#212121</color>
     <color name="colorAccent">#FF4081</color>
     <color name="white_translucent">#befafafa</color>
     <color name="white">#FAFAFA</color>
-    <color name="shopping_cart_light">#73d0f9</color>
-    <color name="shopping_cart_dark">#4f78c1</color>
+    <color name="white_vague">#3cfafafa</color>
+    <color name="white_transparent">#00fafafa</color>
+    <color name="shopping_cart_light">#0adbcd</color>
+    <color name="shopping_cart_dark">#0086cf</color>
     <color name="shopping_cart_secondary">#f04f81</color>
     <color name="red">#ed1a3d</color>
-    <color name="blue">#4978bc</color>
+    <color name="blue">@color/primary_dark</color>
     <color name="light_blue">#6acbdc</color>
     <color name="pink">#e85893</color>
-    <color name="frontpage_bg">#ffa719</color>
+    <color name="orange">#ffa719</color>
+    <color name="green">#20b04f</color>
+    <color name="orange_dark">#f15524</color>
+    <color name="gray">#545454</color>
+    <color name="light_gray">#dfdfdf</color>
+    <color name="payment_method_icon_tint">@color/shopping_cart_dark</color>
+    <color name="payment_method_text_color">#424242</color>
 </resources>

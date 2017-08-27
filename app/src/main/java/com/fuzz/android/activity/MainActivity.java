@@ -26,6 +26,8 @@ import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.format.Formatter;
 import com.fuzz.android.fragment.ArticleInfoFragment;
+import com.fuzz.android.fragment.dialog.AlertDialog;
+import com.fuzz.android.fragment.dialog.OneButtonAction;
 import com.fuzz.android.util.StringUtils;
 import com.fuzz.android.view.ArticleView;
 import com.fuzz.android.view.ArticlesView;
@@ -79,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         articles.setCategoriesView(categories);
 
         View root = findViewById(R.id.root);
-        currentBackgroundColor = ((ColorDrawable) root.getBackground()).getColor();
+        //currentBackgroundColor = ((ColorDrawable) root.getBackground()).getColor();
     }
 
     private void maybeStartTutorial() {
@@ -333,6 +335,13 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     }
 
     public void showShoppingCart(View v) {
+        if (ShoppingCartActivity.getItemCount() == 0){
+            //  No items
+            new AlertDialog(this, R.string.shopping_cart_empty_header, R.string.shopping_cart_empty, new OneButtonAction(R.string.ok, null))
+                    .show(getFragmentManager(), null);
+            return;
+        }
+
         Intent i = new Intent(this, ShoppingCartActivity.class);
         startActivity(i);
     }
@@ -361,6 +370,10 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     }
 
     private void hideDragNoteViews() {
+        if (!showingNoteViews){
+            return;
+        }
+
         //  Show cart cost
         final View cartCost = findViewById(R.id.cart_cost);
         cartCost.animate().alpha(1).start();

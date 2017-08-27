@@ -2,10 +2,14 @@
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:clipToPadding="false"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
     android:clipChildren="false"
     style="@style/ButtonContainer">
 
     <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/accept_text"
         style="@style/ButtonText"
         android:text="Cancel" />

@@ -11,9 +11,8 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.animation.AnticipateInterpolator;
 import android.view.animation.Interpolator;
 import android.widget.TextView;
@@ -42,27 +41,47 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
         cacheResources();
         cacheAndSetupViews();
 
+        parseIntentData();
+
+        loopTrivialMessageUpdates();
+    }
+
+    /**
+     * Checks if there has been a previous order.
+     */
+    private void parseIntentData() {
         Intent i = getIntent();
         int orderId = i.getIntExtra("order_id", -1);
 
         if (orderId == -1) {
-            //  TODO: This is quite bad, handle it
+            //  Show current order
+            long secsAtNotification = i.getLongExtra("secs_at_notif", 0);
+            int etaSeconds = i.getIntExtra("eta_minutes", 0) * 60;
+
+            etaSeconds -= (int) (System.currentTimeMillis() / 1000L - secsAtNotification);
+            if (etaSeconds <= 0){
+                onReachedZero((OrderEtaTimer)findViewById(R.id.timer));
+                return;
+            }
+
+            String deliverer = i.getStringExtra("deliverer");
+
+            onEtaChange(-1, etaSeconds, deliverer);
+
+        } else {
+            boolean debug = false;
+            //  TODO: Funny loading messages at bottom
+            if (!debug)
+                startNotifierService(orderId);
+            else {
+                new android.os.Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        onEtaChange(1, 120, "Johan");
+                    }
+                }, 4000);
+            }
         }
-
-
-        //  TODO: Funny loading messages at bottom
-        if (true)
-            startNotifierService(orderId);
-        else {
-            new android.os.Handler().postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    onEtaChange(1, 2, "Johan");
-                }
-            }, 4000);
-        }
-
-        loopTrivialMessageUpdates();
     }
 
     private void cacheResources() {
@@ -138,10 +157,10 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
     }
 
     @Override
-    public void onEtaChange(int orderId, int etaMins, String delivererName) {
+    public void onEtaChange(int orderId, int etaSeconds, String delivererName) {
         OrderEtaTimer timerView = (OrderEtaTimer) findViewById(R.id.timer);
 
-        timerView.startCountdown(etaMins);
+        timerView.startCountdown(etaSeconds);
         timerView.setAlpha(0f);
         timerView.setScaleX(0.6f);
         timerView.setScaleY(0.6f);
