@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="undeliverable_header">Kan inte ner</string>
-    <string name="undeliverable_message">No no no</string>
+    <string name="undeliverable_header">Olevererbart postnummer</string>
+    <string name="undeliverable_message">Just nu leverar vi tyvärr inte till %s.\nKolla förbi senare!</string>
+    <string name="invalid_pcode_header">Ogiltigt postnummer</string>
+    <string name="invalid_pcode_message">Ange ett giltigt postnummer.</string>
 </resources>

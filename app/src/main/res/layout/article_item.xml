@@ -43,9 +43,28 @@
                 android:rotation="-10"
                 android:text="@string/new_badge"
                 android:textColor="@color/white"
+                android:visibility="gone"
                 android:textSize="12sp"
                 android:translationX="-16dp"
                 android:translationY="-6dp" />
+
+            <!-- Remove badge -->
+            <ImageView
+                android:id="@+id/remove_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="left"
+                android:src="@drawable/ic_remove"
+                android:background="@drawable/circle"
+                android:backgroundTint="@color/red"
+                android:clickable="false"
+                android:gravity="center"
+                android:text="@string/new_badge"
+                android:textColor="@color/white"
+                android:translationX="-8dp"
+                android:translationY="-8dp"
+                android:visibility="gone"
+                android:textSize="12sp" />
 
             <TextView
                 android:id="@+id/quantity"

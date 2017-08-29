@@ -1,9 +1,11 @@
 package com.fuzz.android.activity;
 
 import android.animation.ValueAnimator;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -28,6 +30,7 @@ import com.fuzz.android.format.Formatter;
 import com.fuzz.android.fragment.ArticleInfoFragment;
 import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
+import com.fuzz.android.preferences.PreferenceKeys;
 import com.fuzz.android.util.StringUtils;
 import com.fuzz.android.view.ArticleView;
 import com.fuzz.android.view.ArticlesView;
@@ -49,9 +52,13 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     private int currentBackgroundColor;
     private int cartItemCount;
     private Interpolator cartCostRevealInterpolator;
+    private int dragNotesShowCount;
+    private android.os.Handler handler;
+    private SharedPreferences preferences;
 
     public MainActivity() {
         selectedCategories = new ArrayList<>();
+        handler = new Handler();
     }
 
     @Override
@@ -59,6 +66,8 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         DefaultTypefaces.applyDefaultsToViews(this);
+
+        preferences = getPreferences(Context.MODE_PRIVATE);
 
         fetchArticles();
 
@@ -68,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         ShoppingCartActivity.setShoppingCartListener(this);
 
-        maybeStartTutorial();
+        maybeShowTutorial();
     }
 
     private void setupLayout() {
@@ -84,14 +93,17 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         //currentBackgroundColor = ((ColorDrawable) root.getBackground()).getColor();
     }
 
-    private void maybeStartTutorial() {
-        boolean start = false;
+    private void maybeShowTutorial() {
+        boolean start = preferences.getBoolean(PreferenceKeys.SHOW_TUTORIAL, true);
+
         if (start) {
             startTutorial();
         }
     }
 
     private void startTutorial() {
+        preferences.edit().putBoolean(PreferenceKeys.SHOW_TUTORIAL, false).apply();
+
         new CategoriesTutorial(this);
     }
 
@@ -344,6 +356,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         Intent i = new Intent(this, ShoppingCartActivity.class);
         startActivity(i);
+        overridePendingTransition(R.anim.shopping_cart_reveal, android.R.anim.fade_out);
     }
 
     /**
@@ -366,7 +379,24 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         cartNote.startAnimation(cartNoteRevealAnim);
         infoNote.startAnimation(infoNoteRevealAnim);
 
+        dragNotesShowCount++;
+
+        delayDragNoteViewsHide();
+
         showingNoteViews = true;
+    }
+
+    private void delayDragNoteViewsHide(){
+        final int GENERATION = dragNotesShowCount;
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+               if (dragNotesShowCount == GENERATION){
+                   //   Not shown since
+                   hideDragNoteViews();
+               }
+            }
+        }, 3500);
     }
 
     private void hideDragNoteViews() {

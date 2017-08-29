@@ -14,8 +14,8 @@
     <dimen name="categories_swipe_distance">128dp</dimen>
     <dimen name="category_touch_x">120dp</dimen>
     <dimen name="category_translation_offset">24dp</dimen> <!-- Translation offset which category child lags behind previous sibling -->
-    <dimen name="dialog_height">240dp</dimen>
-    <dimen name="dialog_width">240dp</dimen>
+    <dimen name="dialog_height">280dp</dimen>
+    <dimen name="dialog_width">280dp</dimen>
     <dimen name="dialog_padding">32dp</dimen>
     <dimen name="eta_timer_inner_radius">64dp</dimen>
     <dimen name="eta_timer_size">240dp</dimen>
@@ -23,4 +23,5 @@
     <dimen name="scroll_threshold">3dp</dimen>
     <dimen name="small_margin">6dp</dimen>
     <dimen name="payment_method_height">64dp</dimen>
+    <dimen name="default_elevation">4dp</dimen>
 </resources>

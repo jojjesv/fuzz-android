@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
@@ -67,7 +66,7 @@ public class ShoppingCartActivity extends Activity {
     private String paymentToken;
     private ArticlesAdapter articlesAdapter;
     private View oldPaymentInfoLayout;
-    private int paymentInfoGroupId;
+    private int paymentMethodId;
 
     public static double getMinimumCost() {
         return minimumCost;
@@ -139,6 +138,12 @@ public class ShoppingCartActivity extends Activity {
         updateSelectedArticlesView();
     }
 
+    @Override
+    public void finish() {
+        super.finish();
+        overridePendingTransition(0, R.anim.shopping_cart_hide);
+    }
+
     private void setupLayout() {
         View cardFields = findViewById(R.id.card_payment_group);
 
@@ -173,7 +178,7 @@ public class ShoppingCartActivity extends Activity {
 
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, @IdRes int id) {
-                paymentInfoGroupId = id;
+                paymentMethodId = id;
 
                 RadioButton radioView = (RadioButton)radioGroup.findViewById(id);
                 DrawableCompat.setTint(radioView.getCompoundDrawables()[compoundDrawableIndex], drawableSelectedColor);
@@ -243,8 +248,11 @@ public class ShoppingCartActivity extends Activity {
     private void updateSelectedArticlesView() {
         ArticlesAdapter.ArticleData[] selectedArticles = shoppingCart.toArray(new ArticlesAdapter.ArticleData[0]);
         ArticlesAdapter adapter = new ArticlesAdapter(selectedArticles);
+        adapter.setDarkMode(true);
+
         adapter.setItemsOnClickListener(createArticleClickListener());
         ArticlesView view = (ArticlesView) findViewById(R.id.selected_articles);
+        view.setRemovableOnClick(true);
 
         view.setAdapter(adapter);
         articlesAdapter = adapter;
@@ -370,8 +378,8 @@ public class ShoppingCartActivity extends Activity {
             return getString(R.string.invalid_billing_address);
         }
 
-        switch (paymentInfoGroupId) {
-            case R.id.card_payment_group:
+        switch (paymentMethodId) {
+            case R.id.payment_method_card:
 
                 EditText cardNumber = (EditText)findViewById(R.id.card_number_input);
                 if (cardNumber.getText().length() != 4 * 4 + 3) {
@@ -403,7 +411,7 @@ public class ShoppingCartActivity extends Activity {
      * @param field
      */
     private void onFieldInvalid(View field){
-
+        field.requestFocus();
     }
 
     public void requestPlaceOrder(String postData) {
@@ -545,7 +553,7 @@ public class ShoppingCartActivity extends Activity {
             int status = responseObj.getInt("status");
             if (status == ResponseCodes.SUCCESS) {
                 onOrderPlaced(responseObj.getInt("order_id"));
-            } else if (status == ResponseCodes.NEGATIVE) {
+            } else if (status == ResponseCodes.FAILED) {
                 onPlaceOrderFailed(responseObj.has("message") ? responseObj.getString("message") : null);
             }
 

@@ -3,7 +3,7 @@
 
     <item>
         <shape>
-            <corners android:radius="99dp" android:topLeftRadius="3dp"/>
+            <corners android:radius="24dp" android:topLeftRadius="3dp"/>
             <solid android:color="@color/white" />
             <stroke android:width="2dp" android:color="@color/shopping_cart_light" />
         </shape>

@@ -32,9 +32,18 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     private ArrayList<ArticleData> articles;
     private View.OnClickListener itemsOnClickListener;
     private boolean darkMode;
+    private boolean itemsRemovable;
 
     public ArticlesAdapter(ArticleData[] data) {
         articles = new ArrayList<>(Arrays.asList(data));
+    }
+
+    public boolean isItemsRemovable() {
+        return itemsRemovable;
+    }
+
+    public void setItemsRemovable(boolean itemsRemovable) {
+        this.itemsRemovable = itemsRemovable;
     }
 
     public boolean isDarkMode() {
@@ -68,6 +77,11 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             int lightColor = parent.getResources().getColor(R.color.white);
             holder.costView.setTextColor(lightColor);
             holder.nameView.setTextColor(lightColor);
+        }
+
+        if (itemsRemovable) {
+            holder.newBadge.setVisibility(View.GONE);
+            holder.removeBadge.setVisibility(View.VISIBLE);
         }
 
         return holder;
@@ -134,14 +148,16 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         boolean showQuantity = data.quantity > 1;
         holder.quantityView.setVisibility(showQuantity ? View.VISIBLE : View.GONE);
         if (showQuantity) {
-            if (data.quantityString == null){
+            if (data.quantityString == null) {
                 data.quantityString = holder.itemView.getResources().getString(R.string.quantity, data.quantity);
             }
 
             holder.quantityView.setText(data.quantityString);
         }
 
-        holder.newBadge.setVisibility(data.isNew ? View.VISIBLE : View.GONE);
+        if (!itemsRemovable) {
+            holder.newBadge.setVisibility(data.isNew ? View.VISIBLE : View.GONE);
+        }
     }
 
     @Override
@@ -159,9 +175,9 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         public double cost;
         public String imageUrl;
         public String name;
+        public boolean isNew;
         private Bitmap image;
         private boolean fetchingImage;
-        public boolean isNew;
         private String costString;
         private RoundedBitmapDrawable imageDrawable;
         private String quantityString;
@@ -186,6 +202,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         public TextView quantityView;
         public TextView costView;
         public View newBadge;
+        public View removeBadge;
 
         public ArticlesViewHolder(View itemView) {
             super(itemView);
@@ -194,7 +211,8 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             imageView = (ImageView) itemView.findViewById(R.id.image);
             quantityView = (TextView) itemView.findViewById(R.id.quantity);
             costView = (TextView) itemView.findViewById(R.id.cost);
-            newBadge = (TextView) itemView.findViewById(R.id.new_badge);
+            newBadge = itemView.findViewById(R.id.new_badge);
+            removeBadge = itemView.findViewById(R.id.remove_badge);
         }
     }
 }

@@ -5,4 +5,5 @@ package com.fuzz.android.preferences;
  */
 public interface PreferenceKeys {
     public static String POSTAL_CODE = "pc";
+    public static String SHOW_TUTORIAL = "st";
 }

@@ -7,7 +7,7 @@
     android:clipToPadding="false"
     android:clipChildren="false"
     android:background="@drawable/layout_speech_bg"
-    android:padding="36dp">
+    android:padding="@dimen/dialog_padding">
 
     <TextView
         android:layout_width="match_parent"
@@ -31,7 +31,7 @@
 
         <TextView
             style="@style/ButtonText"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/send_feedback" />
     </LinearLayout>

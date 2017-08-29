@@ -23,6 +23,7 @@
 
     <style name="EditText" parent="ButtonContainer">
         <item name="android:background">@drawable/edittext_bg</item>
+        <item name="android:stateListAnimator">@animator/stateanim_weak</item>
     </style>
 
     <style name="EditText.ShoppingCart">
@@ -35,8 +36,9 @@
         <item name="android:paddingBottom">12dp</item>
         <item name="android:paddingLeft">16dp</item>
         <item name="android:paddingRight">16dp</item>
+        <item name="android:minWidth">64dp</item>
         <item name="android:elevation">3dp</item>
-        <item name="android:stateListAnimator">@animator/touchable</item>
+        <item name="android:stateListAnimator">@animator/stateanim_default</item>
         <item name="android:clickable">true</item>
         <item name="android:orientation">horizontal</item>
     </style>
@@ -57,6 +59,7 @@
     </style>
 
     <style name="FormLabel">
+        <item name="android:layout_marginTop">3dp</item>
         <item name="android:paddingBottom">4dp</item>
         <item name="android:textSize">15sp</item>
     </style>
@@ -74,6 +77,12 @@
         <item name="android:textColor">@color/primary_dark</item>
         <item name="android:textSize">18sp</item>
         <item name="android:layout_marginBottom">18dp</item>
+    </style>
+
+    <style name="AboutApp_Label">
+        <item name="android:layout_marginLeft">8dp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="android:textSize">14sp</item>
     </style>
 
 </resources>

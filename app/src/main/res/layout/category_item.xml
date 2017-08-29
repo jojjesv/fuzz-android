@@ -16,7 +16,7 @@
         android:paddingLeft="15dp"
         android:paddingRight="14dp"
         android:paddingTop="8dp"
-        android:stateListAnimator="@animator/touchable">
+        android:stateListAnimator="@animator/stateanim_default">
 
         <ImageView
             android:id="@+id/remove"

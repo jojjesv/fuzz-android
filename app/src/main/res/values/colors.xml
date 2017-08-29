@@ -9,8 +9,8 @@
     <color name="white">#FAFAFA</color>
     <color name="white_vague">#3cfafafa</color>
     <color name="white_transparent">#00fafafa</color>
-    <color name="shopping_cart_light">#0adbcd</color>
-    <color name="shopping_cart_dark">#0086cf</color>
+    <color name="shopping_cart_light">#55bbe8</color>
+    <color name="shopping_cart_dark">#0794e0</color>
     <color name="shopping_cart_secondary">#f04f81</color>
     <color name="red">#ed1a3d</color>
     <color name="blue">@color/primary_dark</color>

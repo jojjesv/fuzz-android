@@ -51,7 +51,7 @@
                     android:clickable="true"
                     android:onClick="showCategories"
                     android:src="@drawable/categories"
-                    android:stateListAnimator="@animator/touchable" />
+                    android:stateListAnimator="@animator/stateanim_default" />
 
                 <!-- Categories -->
                 <com.fuzz.android.view.CategoriesView

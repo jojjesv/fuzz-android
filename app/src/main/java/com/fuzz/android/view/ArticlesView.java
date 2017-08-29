@@ -34,6 +34,8 @@ import com.fuzz.android.activity.ShoppingCartActivity;
 import com.fuzz.android.adapter.ArticlesAdapter;
 import com.fuzz.android.animator.AnimatorAdapter;
 
+import java.util.ArrayList;
+
 /**
  * View for displaying articles.
  */
@@ -63,6 +65,7 @@ public class ArticlesView extends RecyclerView {
     private boolean scrollable = true;
     private boolean draggableOverCart;
     private boolean draggableOverInfo;
+    private boolean removableOnClick;
     private View cartBtnBackground;
     private View infoBtnBackground;
     private ArticleDragListener articleDragListener;
@@ -115,6 +118,14 @@ public class ArticlesView extends RecyclerView {
         scrollThreshold = res.getDimensionPixelOffset(R.dimen.articles_scroll_threshold);
 
         viewConfig = ViewConfiguration.get(context);
+    }
+
+    public boolean isRemovableOnClick() {
+        return removableOnClick;
+    }
+
+    public void setRemovableOnClick(boolean removableOnClick) {
+        this.removableOnClick = removableOnClick;
     }
 
     @Override
@@ -218,7 +229,7 @@ public class ArticlesView extends RecyclerView {
     @Override
     public boolean dispatchTouchEvent(MotionEvent e) {
 
-        if (itemsMovable) {
+        if (itemsMovable || removableOnClick) {
             int action = e.getAction();
 
             switch (action) {
@@ -240,6 +251,10 @@ public class ArticlesView extends RecyclerView {
                     if (hasSelectedArticle) {
                         restoreDraggableArticleView();
                     } else {
+                        if (removableOnClick && pendingSelectedArticleView != null) {
+                            remove(pendingSelectedArticleView);
+                        }
+
                         //  Alpha is managed otherwise
                         releasePendingSelectedArticle();
                     }
@@ -257,6 +272,20 @@ public class ArticlesView extends RecyclerView {
         }
 
         return super.dispatchTouchEvent(e);
+    }
+
+    private void remove(ArticleView view) {
+        ArticlesAdapter.ArticleData data = (ArticlesAdapter.ArticleData) view.getTag();
+        ArticlesAdapter adapter = (ArticlesAdapter) getAdapter();
+        ArrayList<ArticlesAdapter.ArticleData> items = adapter.getItems();
+
+        for (int i = 0, n = items.size(); i < n; i++) {
+            if (items.get(i).id == data.id) {
+                items.remove(i);
+                adapter.notifyItemRemoved(i);
+                break;
+            }
+        }
     }
 
     private void releasePendingSelectedArticle() {
@@ -437,6 +466,11 @@ public class ArticlesView extends RecyclerView {
 
         pendingSelectedArticleView = selectedView;
 
+        if (!itemsMovable) {
+            //  May still be removable on click
+            return;
+        }
+
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -578,7 +612,14 @@ public class ArticlesView extends RecyclerView {
     @Override
     public void setAdapter(Adapter adapter) {
         super.setAdapter(adapter);
-        ((ArticlesAdapter) adapter).setViewLayoutManager(getLayoutManager());
+        ArticlesAdapter cast = (ArticlesAdapter) adapter;
+        cast.setViewLayoutManager(getLayoutManager());
+        cast.setItemsRemovable(removableOnClick);
+    }
+
+    private enum ArticlesLayout {
+        HORIZONTAL,
+        GRID
     }
 
     public interface ArticleInfoListener {
@@ -597,10 +638,5 @@ public class ArticlesView extends RecyclerView {
          * @param view
          */
         public void onMissedDrag(ArticleView view);
-    }
-
-    private enum ArticlesLayout {
-        HORIZONTAL,
-        GRID
     }
 }

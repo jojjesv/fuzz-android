@@ -64,7 +64,7 @@ public class PostalCodeActivity extends Activity {
         animateView(findViewById(R.id.subheader), baseDelay);
         animateView(findViewById(R.id.text_input), baseDelay * 2);
         animateView(findViewById(R.id.submit), baseDelay * 3);
-        animateTruckView(findViewById(R.id.truck), baseDelay * 8);
+        animateTruckView(findViewById(R.id.truck), baseDelay * 5);
     }
 
     private void animateView(final View v, int delay) {
@@ -117,6 +117,14 @@ public class PostalCodeActivity extends Activity {
         }
     }
 
+    private boolean validatePostalCode(String postalCode) {
+        if (postalCode.length() < 4) {
+            return false;
+        }
+
+        return true;
+    }
+
     /**
      * Submits the inputted postal code and checks whether its deliverable.
      *
@@ -125,6 +133,12 @@ public class PostalCodeActivity extends Activity {
     public void submitPostalCode(View v) {
         EditText inputField = (EditText) findViewById(R.id.text_input);
         String postalCode = inputField.getText().toString();
+
+        if (!validatePostalCode(postalCode)) {
+            new AlertDialog(this, R.string.invalid_pcode_header, R.string.invalid_pcode_message, new OneButtonAction(R.string.ok, null))
+                    .show(getFragmentManager(), null);
+            return;
+        }
 
         lastSubmittedPostalCode = postalCode;
 
@@ -151,7 +165,8 @@ public class PostalCodeActivity extends Activity {
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
             fetchCategories(mainIntent);
         } else {
-            new AlertDialog(this, R.string.undeliverable_header, R.string.undeliverable_message,
+            new AlertDialog(getString(R.string.undeliverable_header),
+                    getString(R.string.undeliverable_message, lastSubmittedPostalCode),
                     new OneButtonAction(R.string.ok, null)).show(getFragmentManager(), null);
         }
     }

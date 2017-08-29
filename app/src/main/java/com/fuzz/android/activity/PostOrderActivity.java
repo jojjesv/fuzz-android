@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.view.ViewCompat;
 import android.util.Log;
 import android.view.View;
 import android.view.animation.AnticipateInterpolator;
@@ -91,6 +92,8 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
 
     private void cacheAndSetupViews() {
         trivialMessagesView = (TextView) findViewById(R.id.trivial_messages);
+
+        ViewCompat.setElevation(trivialMessagesView, getResources().getDimension(R.dimen.default_elevation));
 
         OrderEtaTimer timer = (OrderEtaTimer) findViewById(R.id.timer);
         timer.setReachedZeroListener(this);
