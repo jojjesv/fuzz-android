@@ -1,121 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#68cece"
+    android:background="@color/light_blue"
     android:clipChildren="false"
     android:orientation="vertical">
 
     <!-- Background circle-->
     <com.fuzz.android.view.AnimatedBackgroundCircle
+        app:translation_duration="45000"
+        app:translation_x_to="-10dp"
+        app:translation_y_to="-16dp"
         android:layout_width="450dp"
         android:layout_height="450dp"
         android:background="@drawable/circle"
-        android:backgroundTint="#e8587e"
+        android:backgroundTint="@color/light_red"
         android:translationX="-54dp"
-        android:translationY="-64dp"
-        app:translation_duration="45000"
-        app:translation_x_to="-10dp"
-        app:translation_y_to="-16dp" />
+        android:translationY="-64dp" />
 
     <com.fuzz.android.view.AnimatedBackgroundCircle
+        app:translation_duration="60000"
+        app:translation_x_to="-120dp"
+        app:translation_y_to="-10dp"
         android:layout_width="180dp"
         android:layout_height="180dp"
         android:layout_gravity="bottom|right"
         android:background="@drawable/circle"
-        android:backgroundTint="#bcece8"
+        android:backgroundTint="@color/lightest_blue"
         android:translationX="20dp"
-        android:translationY="40dp"
-        app:translation_duration="60000"
-        app:translation_x_to="-120dp"
-        app:translation_y_to="-10dp" />
+        android:translationY="40dp" />
 
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
-        android:orientation="vertical">
-
-        <com.fuzz.android.view.HeaderTextView
-            android:id="@+id/header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/welcome"
-            android:textColor="@color/white"
-            android:textSize="48sp" />
-
-        <TextView
-            android:id="@+id/subheader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/header"
-            android:layout_gravity="center"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/pcode_subheader_bg"
-            android:gravity="center"
-            android:paddingBottom="12dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingTop="12dp"
-            android:text="@string/input_postal_code"
-            android:textColor="@color/white"
-            android:textSize="18sp" />
-    </LinearLayout>
-
-    <EditText
-        android:id="@+id/text_input"
-        style="@style/EditText"
-        android:layout_width="240dp"
-        android:layout_height="80dp"
-        android:layout_gravity="center"
-        android:layout_marginTop="24dp"
-        android:drawableLeft="@drawable/ic_location_48dp"
-        android:drawableTint="@color/red"
-        android:gravity="center"
-        android:inputType="number"
-        android:maxLength="5"
-        android:maxLines="1"
-        android:paddingRight="48dp"
-        android:singleLine="true"
-        android:textSize="36sp" />
-
-    <include
-        layout="@layout/truck_layout"
-        android:layout_width="wrap_content"
-        android:layout_height="48dp"
-        android:layout_gravity="center"
-        android:layout_marginBottom="36dp" />
-
-    <LinearLayout
-        android:id="@+id/submit"
-        style="@style/ButtonContainer"
+    <ImageView
+        android:id="@+id/app_logo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center|bottom"
-        android:layout_marginBottom="128dp"
-        android:onClick="submitPostalCode">
+        android:layout_gravity="center"
+        android:src="@drawable/ic_logo_white_64dp"/>
 
-        <ImageView
-            style="@style/ButtonContainerIcon"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:clickable="true"
-            android:src="@drawable/ic_continue" />
-
-        <TextView
-            style="@style/ButtonText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/_continue"
-            android:textColor="@color/white" />
-    </LinearLayout>
-
-    <!-- In a hidden state -->
-    <include
-        layout="@layout/about_footer"
-        android:visibility="gone" />
-
+    <!-- Postal code layout will be put here -->
 </FrameLayout>

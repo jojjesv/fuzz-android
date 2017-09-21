@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_gravity="right"
+    android:layout_marginRight="@dimen/activity_horizontal_margin"
+    android:layout_marginTop="128dp"
+    android:background="@drawable/categories_label_bg"
+    android:paddingBottom="12dp"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:paddingTop="12dp"
+    android:text="@string/swipe_categories"
+    android:textColor="@color/white"
+    android:textSize="17sp" />

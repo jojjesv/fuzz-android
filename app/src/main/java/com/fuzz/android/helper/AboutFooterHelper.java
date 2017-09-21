@@ -24,7 +24,8 @@ public class AboutFooterHelper {
     }
 
     public void showFeedbackDialog(Activity activity) {
-        FeedbackFragment dialog = new FeedbackFragment(activity);
+        FeedbackFragment dialog = new FeedbackFragment();
+        dialog.setActivity(activity);
         dialog.show(activity.getFragmentManager(), null);
     }
 }

@@ -18,8 +18,10 @@
     <EditText
         android:id="@+id/message_input"
         style="@style/EditText"
+        android:hint="@string/feedback_hint"
+        android:gravity="top|left"
         android:layout_width="match_parent"
-        android:layout_height="64dp" />
+        android:layout_height="128dp" />
 
     <LinearLayout
         android:id="@+id/submit"

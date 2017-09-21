@@ -28,6 +28,7 @@ public class CategoriesView extends ListView {
      */
     private int[] backgroundColor;
     private ArticlesContainerView container;
+    private boolean didScrollSinceTouchDown;
 
     public CategoriesView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -38,12 +39,18 @@ public class CategoriesView extends ListView {
 
         onItemsHidden();
 
-        int bgColor = res.getColor(R.color.orange);
+        int bgColor = res.getColor(R.color.light_blue);
         backgroundColor = new int[] {
                 Color.red(bgColor),
                 Color.green(bgColor),
                 Color.blue(bgColor)
         };
+    }
+
+    @Override
+    protected void onScrollChanged(int l, int t, int oldl, int oldt) {
+        super.onScrollChanged(l, t, oldl, oldt);
+        didScrollSinceTouchDown = true;
     }
 
     public ArticlesContainerView getContainer() {
@@ -52,6 +59,10 @@ public class CategoriesView extends ListView {
 
     public void setContainer(ArticlesContainerView container) {
         this.container = container;
+    }
+
+    public float getTransitionValue() {
+        return transitionValue;
     }
 
     /**
@@ -82,8 +93,16 @@ public class CategoriesView extends ListView {
 
     @Override
     public boolean dispatchTouchEvent(MotionEvent ev) {
-        if (ev.getAction() == MotionEvent.ACTION_UP && container.getScrollingDirection() == ArticlesContainerView.NONE) {
-            maybeHideFromTouch(ev);
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                didScrollSinceTouchDown = false;
+                break;
+
+            case MotionEvent.ACTION_UP:
+                if (container.getScrollingDirection() == ArticlesContainerView.NONE && !didScrollSinceTouchDown) {
+                    maybeHideFromTouch(ev);
+                }
+                break;
         }
         return super.dispatchTouchEvent(ev);
     }

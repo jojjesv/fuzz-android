@@ -1,0 +1,22 @@
+<resources>
+
+    <style name="PaymentForm_TopLevel">
+        <item name="android:orientation">horizontal</item>
+        <item name="android:layout_width">780dp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="PaymentForm">
+        <item name="android:weightSum">2</item>
+    </style>
+
+    <style name="PaymentForm_PaymentInfo">
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginRight">24dp</item>
+    </style>
+
+    <style name="PaymentForm_DeliveryInfo">
+        <item name="android:layout_weight">1</item>
+    </style>
+
+</resources>

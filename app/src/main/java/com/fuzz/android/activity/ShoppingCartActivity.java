@@ -1,14 +1,18 @@
 package com.fuzz.android.activity;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
+import android.graphics.drawable.Drawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
 import android.support.v4.graphics.drawable.DrawableCompat;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.Spanned;
@@ -23,6 +27,7 @@ import android.widget.TextView;
 
 import com.fuzz.android.R;
 import com.fuzz.android.adapter.ArticlesAdapter;
+import com.fuzz.android.animator.AnimatorAdapter;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.format.Formatter;
@@ -31,6 +36,7 @@ import com.fuzz.android.fragment.dialog.OneButtonAction;
 import com.fuzz.android.helper.AboutFooterHelper;
 import com.fuzz.android.listener.CardNumberFormatWatcher;
 import com.fuzz.android.listener.MonthYearFormatWatcher;
+import com.fuzz.android.view.ArticleView;
 import com.fuzz.android.view.ArticlesView;
 import com.fuzz.android.view.DefaultTypefaces;
 import com.stripe.android.Stripe;
@@ -57,6 +63,10 @@ public class ShoppingCartActivity extends Activity {
      * Minimum cost for ordering.
      */
     private static double minimumCost;
+    /**
+     * Delivery cost.
+     */
+    private static double deliveryCost;
 
     static {
         shoppingCart = new ArrayList<>();
@@ -67,6 +77,15 @@ public class ShoppingCartActivity extends Activity {
     private ArticlesAdapter articlesAdapter;
     private View oldPaymentInfoLayout;
     private int paymentMethodId;
+    private View loadingView;
+
+    public static double getDeliveryCost() {
+        return deliveryCost;
+    }
+
+    public static void setDeliveryCost(double deliveryCost) {
+        ShoppingCartActivity.deliveryCost = deliveryCost;
+    }
 
     public static double getMinimumCost() {
         return minimumCost;
@@ -117,11 +136,19 @@ public class ShoppingCartActivity extends Activity {
         return builder.toString();
     }
 
-    public static double getTotalCost() {
-        double totalCost = 0;
+    public static double getCartCost() {
+        double cartCost = 0;
         for (ArticlesAdapter.ArticleData article : shoppingCart) {
-            totalCost += article.cost;
+            cartCost += article.cost;
         }
+
+        return cartCost;
+    }
+
+    public static double getTotalCost() {
+        double totalCost = getCartCost();
+
+        totalCost += deliveryCost;
 
         return totalCost;
     }
@@ -155,6 +182,32 @@ public class ShoppingCartActivity extends Activity {
 
         setupRadioGroups();
 
+        ArticlesView articlesView = (ArticlesView) findViewById(R.id.articles);
+        articlesView.setArticleListener(new ArticlesView.ArticleListener() {
+            @Override
+            public void onArticleRemoved(ArticlesAdapter.ArticleData data) {
+                removeFromCart(data);
+                updateTotalCost();
+            }
+
+            @Override
+            public void onArticleClicked(ArticleView view) {
+
+            }
+
+            @Override
+            public void onStartedDrag(ArticleView view) {
+
+            }
+
+            @Override
+            public void onMissedDrag(ArticleView view) {
+
+            }
+        });
+
+        loadingView = findViewById(R.id.loading);
+
         DefaultTypefaces.applyDefaultsToViews(this);
     }
 
@@ -165,6 +218,8 @@ public class ShoppingCartActivity extends Activity {
             int drawableSelectedColor;
             int textNormalColor;
             int drawableNormalColor;
+            private RadioButton previousRadioView;
+            private int compoundDrawableIndex = 3;
 
             {
                 Resources res = getResources();
@@ -173,18 +228,15 @@ public class ShoppingCartActivity extends Activity {
                 drawableNormalColor = res.getColor(R.color.payment_method_icon_tint);
             }
 
-            private RadioButton previousRadioView;
-            private int compoundDrawableIndex = 3;
-
             @Override
             public void onCheckedChanged(RadioGroup radioGroup, @IdRes int id) {
                 paymentMethodId = id;
 
-                RadioButton radioView = (RadioButton)radioGroup.findViewById(id);
+                RadioButton radioView = (RadioButton) radioGroup.findViewById(id);
                 DrawableCompat.setTint(radioView.getCompoundDrawables()[compoundDrawableIndex], drawableSelectedColor);
                 radioView.setTextColor(textSelectedColor);
 
-                if (previousRadioView != null){
+                if (previousRadioView != null) {
                     //  Deselect previous
                     DrawableCompat.setTint(previousRadioView.getCompoundDrawables()[compoundDrawableIndex], drawableNormalColor);
                     previousRadioView.setTextColor(textNormalColor);
@@ -205,8 +257,37 @@ public class ShoppingCartActivity extends Activity {
             }
         };
 
+        if (Build.VERSION.SDK_INT <= 19) {
+            wrapRadioButtonCompoundDrawables(paymentMethods);
+        }
+
         paymentMethods.setOnCheckedChangeListener(checkedChangeListener);
         checkedChangeListener.onCheckedChanged(paymentMethods, paymentMethods.getCheckedRadioButtonId());
+    }
+
+    private void wrapRadioButtonCompoundDrawables(RadioGroup group) {
+        RadioButton[] buttons = new RadioButton[]{
+                (RadioButton) group.findViewById(R.id.payment_method_card),
+                (RadioButton) group.findViewById(R.id.payment_method_cash),
+                (RadioButton) group.findViewById(R.id.payment_method_swish),
+        };
+
+        Drawable compound;
+        Resources res = getResources();
+        int tint = res.getColor(R.color.payment_method_icon_tint);
+
+        for (RadioButton btn : buttons) {
+            compound = DrawableCompat.wrap(btn.getCompoundDrawables()[3]);
+
+            btn.setCompoundDrawables(
+                    null,
+                    null,
+                    null,
+                    compound
+            );
+
+            DrawableCompat.setTint(compound, tint);
+        }
     }
 
     public void openSwishApp(View v) {
@@ -250,9 +331,9 @@ public class ShoppingCartActivity extends Activity {
         ArticlesAdapter adapter = new ArticlesAdapter(selectedArticles);
         adapter.setDarkMode(true);
 
-        adapter.setItemsOnClickListener(createArticleClickListener());
-        ArticlesView view = (ArticlesView) findViewById(R.id.selected_articles);
+        ArticlesView view = (ArticlesView) findViewById(R.id.articles);
         view.setRemovableOnClick(true);
+        view.setItemAnimator(new DefaultItemAnimator());
 
         view.setAdapter(adapter);
         articlesAdapter = adapter;
@@ -262,18 +343,30 @@ public class ShoppingCartActivity extends Activity {
 
     private void updateTotalCost() {
         //  Update total cost label
-        double totalCost = getTotalCost();
+        double cost = getCartCost();
 
         ForegroundColorSpan costAmountSpan = new ForegroundColorSpan(getResources().getColor(R.color.white_translucent));
 
         String prefix;
         String suffix;
 
+
+        //  Articles cost view
+        TextView articlesCostView = (TextView) findViewById(R.id.cost_articles);
+        prefix = getString(R.string.cost_add_articles);
+        suffix = getString(R.string.cost_add_appendage, Formatter.formatCurrency(cost));
+
+        SpannableString articlesCostSpannable = new SpannableString(prefix + suffix);
+        articlesCostSpannable.setSpan(costAmountSpan, prefix.length(), articlesCostSpannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        articlesCostView.setText(articlesCostSpannable);
+
+
         TextView costBelowMinView = (TextView) findViewById(R.id.cost_below_min);
 
-        if (totalCost < minimumCost) {
+        if (cost < minimumCost) {
             //  Adds delta cost
-            double deltaCost = minimumCost - totalCost;
+            double deltaCost = minimumCost - cost;
             costBelowMinView.setVisibility(View.VISIBLE);
 
             prefix = getString(R.string.cost_add_below_min, Formatter.formatCurrency(minimumCost));
@@ -283,57 +376,35 @@ public class ShoppingCartActivity extends Activity {
             belowMinSpannable.setSpan(costAmountSpan, prefix.length(), belowMinSpannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
             costBelowMinView.setText(belowMinSpannable);
+
+            cost = minimumCost;
+
         } else {
             costBelowMinView.setVisibility(View.GONE);
         }
 
+
+        //  Delivery cost view
+        TextView deliveryCostView = (TextView) findViewById(R.id.delivery_cost);
+        prefix = getString(R.string.cost_add_delivery);
+        suffix = getString(R.string.cost_add_appendage, Formatter.formatCurrency(deliveryCost));
+
+        SpannableString deliveryCostSpannable = new SpannableString(prefix + suffix);
+        deliveryCostSpannable.setSpan(costAmountSpan, prefix.length(), deliveryCostSpannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        deliveryCostView.setText(deliveryCostSpannable);
+
+        cost += deliveryCost;
+
         //  Total cost view
         TextView totalCostView = (TextView) findViewById(R.id.total_cost);
         prefix = getString(R.string.total_cost);
-        suffix = getString(R.string.cost_add_appendage, Formatter.formatCurrency(Math.max(totalCost, minimumCost)));
+        suffix = getString(R.string.cost_add_appendage, Formatter.formatCurrency(Math.max(cost, minimumCost)));
 
         SpannableString totalCostSpannable = new SpannableString(prefix + suffix);
         totalCostSpannable.setSpan(costAmountSpan, prefix.length(), totalCostSpannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         totalCostView.setText(totalCostSpannable);
-
-        //  Articles cost view
-        TextView articlesCostView = (TextView) findViewById(R.id.cost_articles);
-        prefix = getString(R.string.cost_add_articles);
-        suffix = getString(R.string.cost_add_appendage, Formatter.formatCurrency(totalCost));
-
-        SpannableString articlesCostSpannable = new SpannableString(prefix + suffix);
-        articlesCostSpannable.setSpan(costAmountSpan, prefix.length(), articlesCostSpannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        articlesCostView.setText(articlesCostSpannable);
-    }
-
-    /**
-     * @return Click listener which will remove an item from the cart upon click.
-     */
-    private View.OnClickListener createArticleClickListener() {
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                removeItem((ArticlesAdapter.ArticleData) view.getTag(), view);
-            }
-        };
-    }
-
-    private void removeItem(final ArticlesAdapter.ArticleData article, final View v) {
-        removeFromCart(article);
-
-        ArrayList<ArticlesAdapter.ArticleData> items = articlesAdapter.getItems();
-        for (int i = 0, n = items.size(); i < n; i++) {
-            if (items.get(i).id == article.id) {
-                //  Remove this item
-                items.remove(i);
-                articlesAdapter.notifyItemRemoved(i);
-                break;
-            }
-        }
-
-        updateTotalCost();
     }
 
     private void requestPaymentToken() {
@@ -358,19 +429,22 @@ public class ShoppingCartActivity extends Activity {
         String invalidFormMessage = validateForm();
         if (invalidFormMessage != null) {
             //  Has error message
-            new AlertDialog(getString(R.string.invalid_form_header), invalidFormMessage, new OneButtonAction(R.string.ok, null))
-                .show(getFragmentManager(), null);
+            showErrorMessage(invalidFormMessage);
             return;
         }
+
+        showLoading();
 
         placeOrder();
     }
 
     /**
      * Validates the form.
+     *
      * @return Error message, or null if form is valid.
      */
-    private String validateForm(){
+    private String validateForm() {
+        //  Validate required fields here
         EditText billingAddress = (EditText) findViewById(R.id.billing_address_input);
 
         if (billingAddress.getText().length() < 3) {
@@ -378,23 +452,30 @@ public class ShoppingCartActivity extends Activity {
             return getString(R.string.invalid_billing_address);
         }
 
+        EditText orderer = (EditText) findViewById(R.id.full_name_input);
+
+        if (orderer.getText().length() < 2) {
+            onFieldInvalid(orderer);
+            return getString(R.string.invalid_orderer);
+        }
+
         switch (paymentMethodId) {
             case R.id.payment_method_card:
 
-                EditText cardNumber = (EditText)findViewById(R.id.card_number_input);
+                EditText cardNumber = (EditText) findViewById(R.id.card_number_input);
                 if (cardNumber.getText().length() != 4 * 4 + 3) {
                     onFieldInvalid(cardNumber);
                     return getString(R.string.invalid_card_number);
                 }
 
-                EditText expire = (EditText)findViewById(R.id.expire_date_input);
+                EditText expire = (EditText) findViewById(R.id.expire_date_input);
                 Editable expireText = expire.getText();
                 if (expireText.length() != 5 || !expireText.toString().matches("\\d+\\/\\d+")) {
                     onFieldInvalid(expire);
                     return getString(R.string.invalid_card_number);
                 }
 
-                EditText cvc = (EditText)findViewById(R.id.cvc_input);
+                EditText cvc = (EditText) findViewById(R.id.cvc_input);
                 if (cvc.getText().length() != 3) {
                     onFieldInvalid(cvc);
                     return getString(R.string.invalid_card_cvc);
@@ -408,9 +489,10 @@ public class ShoppingCartActivity extends Activity {
 
     /**
      * Called when a form field has invalid value upon submission.
+     *
      * @param field
      */
-    private void onFieldInvalid(View field){
+    private void onFieldInvalid(View field) {
         field.requestFocus();
     }
 
@@ -428,17 +510,24 @@ public class ShoppingCartActivity extends Activity {
         });
     }
 
+    private void showErrorMessage(String message){
+        new AlertDialog()
+                .setHeader(getString(R.string.invalid_form_header))
+                .setText(message)
+                .setActions(new OneButtonAction(R.string.ok, null))
+                .show(getFragmentManager(), null);
+    }
+
     /**
      * Confirms and places the order.
      */
     public void placeOrder() {
         String billingAddress = ((EditText) findViewById(R.id.billing_address_input)).getText().toString();
 
-        String houseNumber = ((EditText) findViewById(R.id.house_number_input)).getText().toString();
         String floor = ((EditText) findViewById(R.id.floor_input)).getText().toString();
         String doorCode = ((EditText) findViewById(R.id.door_code_input)).getText().toString();
-
         String message = ((EditText) findViewById(R.id.message_input)).getText().toString();
+        String fullName = ((EditText) findViewById(R.id.full_name_input)).getText().toString();
 
         RadioGroup paymentMethods = (RadioGroup) findViewById(R.id.payment_methods);
         int paymentMethodId = paymentMethods.getCheckedRadioButtonId();
@@ -451,12 +540,10 @@ public class ShoppingCartActivity extends Activity {
         postBuilder.append("billing_address=").append(BackendCom.encode(billingAddress));
         postBuilder.append("&payment_method=").append(paymentMethod);
         postBuilder.append("&payment_info=").append(BackendCom.encode(paymentInfo));
+        postBuilder.append("&orderer=").append(BackendCom.encode(fullName));
         postBuilder.append("&cart_items=").append(items);
         postBuilder.append("&postal_code=").append(postalCode);
 
-        if (houseNumber.length() > 0) {
-            postBuilder.append("&house_number=").append(houseNumber);
-        }
         if (floor.length() > 0) {
             postBuilder.append("&floor=").append(floor);
         }
@@ -499,6 +586,7 @@ public class ShoppingCartActivity extends Activity {
 
         if (!card.validateNumber() || !card.validateCVC() || !card.validateExpMonth() || !card.validateExpYear()) {
             onInvalidCard();
+            return;
         }
 
         Stripe stripe = new Stripe(this, "pk_test_pUCEDa47lAxtjphvdwdVT7j2");
@@ -513,6 +601,31 @@ public class ShoppingCartActivity extends Activity {
                 processCardPayment(token, orderPostData);
             }
         });
+    }
+
+    private void showLoading(){
+        View view = loadingView;
+        view.setAlpha(0);
+        view.setVisibility(View.VISIBLE);
+        view.animate()
+                .alpha(1)
+                .setDuration(500)
+                .start();
+    }
+
+    private void hideLoading(){
+        View view = loadingView;
+        view.animate()
+                .alpha(0)
+                .setListener(new AnimatorAdapter(){
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        loadingView.setVisibility(View.GONE);
+                    }
+                })
+                .setDuration(100)
+                .start();
+        view.setVisibility(View.VISIBLE);
     }
 
     /**
@@ -539,11 +652,14 @@ public class ShoppingCartActivity extends Activity {
     }
 
     private void onInvalidCard() {
-
+        showErrorMessage(getString(R.string.invalid_card));
+        hideLoading();
     }
 
     private void onPaymentError(Exception ex) {
-
+        Log.e("Payment", "Payment error", ex);
+        showErrorMessage(getString(R.string.generic_card_error));
+        hideLoading();
     }
 
     private void parsePlaceOrderResponse(String response) {
@@ -566,9 +682,14 @@ public class ShoppingCartActivity extends Activity {
         Log.e(getClass().getSimpleName(), "Order placed failed. Msg: " + message);
 
         if (message != null) {
-            new AlertDialog(getString(R.string.something_wrong), message, new OneButtonAction(R.string.ok, null))
+            new AlertDialog()
+                    .setHeader(getString(R.string.something_wrong))
+                    .setText(message)
+                    .setActions(new OneButtonAction(R.string.ok, null))
                     .show(getFragmentManager(), null);
         }
+
+        hideLoading();
     }
 
     /**
@@ -599,17 +720,17 @@ public class ShoppingCartActivity extends Activity {
         }
     }
 
-    public interface ShoppingCartListener {
-        public void onItemAdded(ArticlesAdapter.ArticleData item);
-
-        public void onItemRemoved(ArticlesAdapter.ArticleData item);
-    }
-
     public void showFeedbackDialog(View v) {
         AboutFooterHelper.getInstance().showFeedbackDialog(this);
     }
 
     public void showAboutApp(View v) {
         AboutFooterHelper.getInstance().showAboutApp(this);
+    }
+
+    public interface ShoppingCartListener {
+        public void onItemAdded(ArticlesAdapter.ArticleData item);
+
+        public void onItemRemoved(ArticlesAdapter.ArticleData item);
     }
 }

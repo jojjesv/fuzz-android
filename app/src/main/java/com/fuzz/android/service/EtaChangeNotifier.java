@@ -104,7 +104,7 @@ public class EtaChangeNotifier extends Service {
 
                 notifyUser(etaMins, deliverer);
                 if (listener != null) {
-                    listener.onEtaChange(orderId, etaMins * 60, deliverer);
+                    listener.onEtaChange(orderId, etaMins * 60, 0, deliverer);
                 }
 
             } catch (JSONException ex) {
@@ -120,6 +120,7 @@ public class EtaChangeNotifier extends Service {
         intent.putExtra("secs_at_notif", System.currentTimeMillis() / 1000L);
         intent.putExtra("eta_minutes", etaMins);
         intent.putExtra("deliverer", deliverer);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
         //  FLAG_UPDATE_CURRENT prevents two different extra values!!
         PendingIntent notificationIntent = PendingIntent.getActivity(this, NOTIFICATION_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -146,7 +147,7 @@ public class EtaChangeNotifier extends Service {
     }
 
     public interface EtaChangeListener {
-        public void onEtaChange(int orderId, int etaSeconds, String delivererName);
+        public void onEtaChange(int orderId, int etaSeconds, int secondsPassed, String delivererName);
     }
 
     public static class Binder extends android.os.Binder {

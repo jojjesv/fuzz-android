@@ -15,6 +15,8 @@
         android:clipChildren="false"
         android:orientation="vertical">
 
+        <include layout="@layout/main_background" />
+
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -44,6 +46,24 @@
                     android:overScrollMode="never"
                     android:paddingTop="60dp" />
 
+                <LinearLayout
+                    android:id="@+id/no_items"
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_gravity="center">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:text="@string/articles_fetch_fail"
+                        android:gravity="center"
+                        android:textSize="20sp"
+                        android:textColor="@color/white"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center" />
+                </LinearLayout>
+
                 <!-- Categories button -->
                 <ImageView
                     android:layout_width="56dp"
@@ -58,9 +78,11 @@
                     android:id="@+id/categories"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/orange"
+                    android:background="@color/light_blue"
                     android:clipChildren="false"
                     android:clipToPadding="false"
+                    android:paddingBottom="8dp"
+                    android:overScrollMode="never"
                     android:divider="@null"
                     android:listSelector="@android:color/transparent"
                     android:scrollbars="none" />
@@ -91,7 +113,8 @@
                     android:alpha="0"
                     android:background="@drawable/action_bar_btn_bg"
                     android:scaleX="0.25"
-                    android:scaleY="0.25" />
+                    android:scaleY="0.25"
+                    android:visibility="gone" />
 
                 <ImageView
                     android:id="@+id/article_info_button"

@@ -4,15 +4,20 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.text.SpannableString;
 import android.text.Spanned;
 import android.text.style.ForegroundColorSpan;
+import android.util.DisplayMetrics;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
@@ -30,6 +35,7 @@ import com.fuzz.android.format.Formatter;
 import com.fuzz.android.fragment.ArticleInfoFragment;
 import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
+import com.fuzz.android.listener.MainArticlesScrollListener;
 import com.fuzz.android.preferences.PreferenceKeys;
 import com.fuzz.android.util.StringUtils;
 import com.fuzz.android.view.ArticleView;
@@ -44,7 +50,8 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class MainActivity extends AppCompatActivity implements ArticlesView.ArticleInfoListener, ArticlesView.ArticleDragListener, ShoppingCartActivity.ShoppingCartListener {
+public class MainActivity extends AppCompatActivity implements ArticlesView.ArticleInfoListener, ArticlesView.ArticleListener, ShoppingCartActivity.ShoppingCartListener,
+        MainArticlesScrollListener.FetchNextPageListener {
 
     private CategoriesAdapter.CategoryData[] categories;
     private ArrayList<Integer> selectedCategories;
@@ -55,10 +62,24 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     private int dragNotesShowCount;
     private android.os.Handler handler;
     private SharedPreferences preferences;
+    private int currentArticlePage;
+    private boolean fetchedLastArticlePage;
+    private int articlesPerPage;
+    private boolean fetchingArticles;
+    private View[] backgroundItems;
+    private float[] backgroundItemParallax;
 
     public MainActivity() {
         selectedCategories = new ArrayList<>();
         handler = new Handler();
+    }
+
+    @Override
+    public void fetchNextPage() {
+        if (canFetchArticles()) {
+            currentArticlePage++;
+            fetchArticles();
+        }
     }
 
     @Override
@@ -69,13 +90,13 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         preferences = getPreferences(Context.MODE_PRIVATE);
 
-        fetchArticles();
-
         Intent sender = getIntent();
         parseCategories(sender.getStringExtra("categories_response"));
         setupLayout();
 
         ShoppingCartActivity.setShoppingCartListener(this);
+
+        fetchArticles();
 
         maybeShowTutorial();
     }
@@ -83,14 +104,73 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     private void setupLayout() {
         ArticlesView articles = (ArticlesView) findViewById(R.id.articles);
         articles.setItemsMovable(true);
-        articles.setArticleDragListener(this);
         articles.setArticleInfoListener(this);
+        articles.setArticleListener(this);
+        articles.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+
+                scrollBackgroundBy(-dy * 0.2f);
+            }
+        });
+
+        //  Enables fetching next page once reached bottom
+        articles.setScrollUpdateListener(new MainArticlesScrollListener(this));
 
         CategoriesView categories = (CategoriesView) findViewById(R.id.categories);
         articles.setCategoriesView(categories);
 
         View root = findViewById(R.id.root);
         //currentBackgroundColor = ((ColorDrawable) root.getBackground()).getColor();
+
+        Resources res = getResources();
+        DisplayMetrics displayMetrics = res.getDisplayMetrics();
+        int articlesPerRow = res.getInteger(R.integer.articles_per_row);
+        int articleHeight = res.getDimensionPixelSize(R.dimen.article_item_height);
+        int rowsPerPage = (int) Math.ceil((float) displayMetrics.heightPixels / articleHeight) + 2; //  Consider action bar
+
+        articlesPerPage = rowsPerPage * articlesPerRow;
+
+        setupLayoutBackground();
+    }
+
+    private void setupLayoutBackground() {
+        backgroundItems = new View[]{
+                findViewById(R.id.background_item_1),
+                findViewById(R.id.background_item_2),
+                findViewById(R.id.background_item_3),
+                findViewById(R.id.background_item_4)
+        };
+
+        backgroundItemParallax = new float[]{
+                1,
+                0.95f,
+                0.9f,
+                0.975f,
+                0.925f
+        };
+    }
+
+    public void scrollBackgroundBy(float yDelta) {
+        float newTranslationY;
+        int parentHeight = -1;
+        View v;
+        for (int i = 0, n = backgroundItems.length; i < n; i++) {
+            v = backgroundItems[i];
+
+            newTranslationY = v.getTranslationY() + yDelta *  backgroundItemParallax[i];
+            if (parentHeight == -1){
+                parentHeight = ((ViewGroup)v.getParent()).getMeasuredHeight();
+            }
+
+            if (yDelta < 0 ? newTranslationY < -v.getMeasuredHeight() : newTranslationY > parentHeight) {
+                newTranslationY = yDelta < 0 ? newTranslationY + parentHeight + v.getMeasuredHeight() :
+                        newTranslationY - parentHeight - v.getMeasuredHeight();
+            }
+
+            v.setTranslationY(newTranslationY);
+        }
     }
 
     private void maybeShowTutorial() {
@@ -108,11 +188,11 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     }
 
     private void updateCartCost() {
-        double totalCost = ShoppingCartActivity.getTotalCost();
+        double cartCost = ShoppingCartActivity.getCartCost();
 
         TextView badge = (TextView) findViewById(R.id.cart_cost);
 
-        if (totalCost == 0) {
+        if (cartCost == 0) {
             //  This won't occur while in MainActivity, no animation needed
             badge.setVisibility(View.GONE);
             cartItemCount = 0;
@@ -122,7 +202,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         int itemCount = ShoppingCartActivity.getItemCount();
 
         String countStr = getString(R.string.cart_items, itemCount);
-        String costStr = getString(R.string.cart_cost_appendage, Formatter.formatCurrency(totalCost));
+        String costStr = getString(R.string.cart_cost_appendage, Formatter.formatCurrency(cartCost));
 
         SpannableString spannable = new SpannableString(countStr + costStr);
 
@@ -200,6 +280,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
             selectedCategories.remove((Integer) categoryData.id);
         }
 
+        currentArticlePage = 0;
         fetchArticles();
 
         //changeBackgroundColor(categoryData.color);
@@ -252,8 +333,22 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         currentBackgroundColor = newColor;
     }
 
+    private boolean canFetchArticles(){
+        return !fetchingArticles && !fetchedLastArticlePage;
+    }
+
     public void fetchArticles() {
+        if (!canFetchArticles()) {
+            return;
+        }
+
+        fetchingArticles = true;
+
+        setNoItemsVisibility(false);
+
         StringBuilder queryString = new StringBuilder("out=articles");
+        queryString.append("&count=").append(articlesPerPage);
+        queryString.append("&page=").append(currentArticlePage);
 
         int selectedCategoriesSize = selectedCategories.size();
 
@@ -286,6 +381,10 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
                 onResponse("" + ResponseCodes.FAILED);
             }
         });
+    }
+
+    private void setNoItemsVisibility(boolean visible) {
+        findViewById(R.id.no_items).setVisibility(visible ? View.VISIBLE : View.GONE);
     }
 
     @Override
@@ -329,14 +428,58 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
                 }
             }
 
-            ArticlesAdapter adapter = new ArticlesAdapter(items.toArray(new ArticlesAdapter.ArticleData[0]));
-            adapter.setDarkMode(true);
-            ((ArticlesView) findViewById(R.id.articles)).setAdapter(adapter);
+            ArticlesView articlesView = (ArticlesView) findViewById(R.id.articles);
+            ArticlesAdapter adapter;
+            ArticlesAdapter.ArticleData[] itemsArray = items.toArray(new ArticlesAdapter.ArticleData[0]);
+            if (articlesView.getAdapter() == null) {
+                adapter = new ArticlesAdapter(itemsArray);
+                articlesView.setAdapter(adapter);
+                adapter.setDarkMode(true);
 
+                articlesView.setAdapter(adapter);
+            } else {
+                adapter = (ArticlesAdapter) articlesView.getAdapter();
+                ArrayList<ArticlesAdapter.ArticleData> adapterItems = adapter.getItems();
+
+                int oldLen = adapterItems.size();
+
+                if (currentArticlePage == 0) {
+                    //  Clear all
+                    adapterItems.clear();
+                    adapterItems.addAll(items);
+
+                    adapter.notifyDataSetChanged();
+                } else {
+                    if (itemsArray.length > 0) {
+                        //  Append
+                        adapterItems.addAll(items);
+                        adapter.notifyItemRangeInserted(oldLen, items.size());
+                    } else {
+                        fetchedLastArticlePage = true;
+                    }
+                }
+            }
 
         } catch (JSONException ex) {
+            //  TODO: Fix when touching notification
             //  TODO: Handle JSON error
+            setNoItemsVisibility(true);
         }
+
+        fetchingArticles = false;
+    }
+
+    private void keepArticlesScroll(ArticlesView view){
+        final LinearLayoutManager layoutManager = (LinearLayoutManager)view.getLayoutManager();
+        final int lastItem = layoutManager.findLastCompletelyVisibleItemPosition();
+        view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override
+            public void onLayoutChange(View view, int i, int i1, int i2, int i3, int i4, int i5, int i6, int i7) {
+                view.removeOnLayoutChangeListener(this);
+
+                layoutManager.scrollToPosition(lastItem);
+            }
+        });
     }
 
     @Override
@@ -347,9 +490,12 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     }
 
     public void showShoppingCart(View v) {
-        if (ShoppingCartActivity.getItemCount() == 0){
+        if (ShoppingCartActivity.getItemCount() == 0) {
             //  No items
-            new AlertDialog(this, R.string.shopping_cart_empty_header, R.string.shopping_cart_empty, new OneButtonAction(R.string.ok, null))
+            new AlertDialog()
+                    .setHeader(getString(R.string.shopping_cart_empty_header))
+                    .setText(getString(R.string.shopping_cart_empty))
+                    .setActions(new OneButtonAction(R.string.ok, null))
                     .show(getFragmentManager(), null);
             return;
         }
@@ -362,7 +508,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     /**
      * Shows the user where to drag an article.
      */
-    private void showDragNoteViews() {
+    private void showDraggingHints() {
         //  Hide cart cost
         final View cartCost = findViewById(R.id.cart_cost);
         cartCost.animate().alpha(0).start();
@@ -386,21 +532,21 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         showingNoteViews = true;
     }
 
-    private void delayDragNoteViewsHide(){
+    private void delayDragNoteViewsHide() {
         final int GENERATION = dragNotesShowCount;
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-               if (dragNotesShowCount == GENERATION){
-                   //   Not shown since
-                   hideDragNoteViews();
-               }
+                if (dragNotesShowCount == GENERATION) {
+                    //   Not shown since
+                    hideDragNoteViews();
+                }
             }
         }, 3500);
     }
 
     private void hideDragNoteViews() {
-        if (!showingNoteViews){
+        if (!showingNoteViews) {
             return;
         }
 
@@ -442,7 +588,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     @Override
     public void onMissedDrag(ArticleView view) {
         if (!showingNoteViews) {
-            showDragNoteViews();
+            showDraggingHints();
         }
     }
 
@@ -454,5 +600,15 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     @Override
     public void onItemRemoved(ArticlesAdapter.ArticleData item) {
         updateCartCost();
+    }
+
+    @Override
+    public void onArticleRemoved(ArticlesAdapter.ArticleData data) {
+
+    }
+
+    @Override
+    public void onArticleClicked(ArticleView view) {
+        showDraggingHints();
     }
 }

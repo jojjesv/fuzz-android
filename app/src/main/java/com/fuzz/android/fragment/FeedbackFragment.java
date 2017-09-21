@@ -14,6 +14,7 @@ import android.widget.EditText;
 
 import com.fuzz.android.R;
 import com.fuzz.android.backend.BackendCom;
+import com.fuzz.android.util.ViewUtils;
 
 /**
  * Dialog fragment for sending feedback.
@@ -24,7 +25,7 @@ public class FeedbackFragment extends BaseDialogFragment {
      */
     private Activity activity;
 
-    public FeedbackFragment(Activity activity) {
+    public void setActivity(Activity activity) {
         this.activity = activity;
     }
 
@@ -39,6 +40,7 @@ public class FeedbackFragment extends BaseDialogFragment {
     private void setupView(View v) {
         View submit = v.findViewById(R.id.submit);
 
+        ViewUtils.setEnabled(submit, false, false);
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

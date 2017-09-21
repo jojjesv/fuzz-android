@@ -1,18 +1,25 @@
 package com.fuzz.android.activity;
 
+import android.animation.Animator;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewParent;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.AnimationUtils;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.Interpolator;
 import android.view.animation.OvershootInterpolator;
 import android.widget.EditText;
 
 import com.fuzz.android.R;
+import com.fuzz.android.animator.AnimatorAdapter;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.fragment.AboutAppFragment;
@@ -21,6 +28,7 @@ import com.fuzz.android.fragment.dialog.OneButtonAction;
 import com.fuzz.android.helper.AboutFooterHelper;
 import com.fuzz.android.preferences.PreferenceKeys;
 import com.fuzz.android.view.DefaultTypefaces;
+import com.fuzz.android.view.LoadingIndicator;
 import com.fuzz.android.view.TruckAnimator;
 
 import org.json.JSONException;
@@ -34,6 +42,9 @@ public class PostalCodeActivity extends Activity {
     private SharedPreferences preferences;
     private android.os.Handler handler;
     private Interpolator viewInterpolator;
+    private View logoView;
+
+    private static final int SPLASH_DURATION = 1000;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,18 +55,57 @@ public class PostalCodeActivity extends Activity {
         viewInterpolator = new OvershootInterpolator();
 
         setContentView(R.layout.activity_postal_code);
-        DefaultTypefaces.applyDefaultsToViews(this);
+
+        setupSplash();
+    }
+
+    private void setupSplash() {
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                hideSplash();
+            }
+        }, SPLASH_DURATION);
+
+        animateSplash();
+    }
+
+    private void animateSplash(){
+        logoView = findViewById(R.id.app_logo);
+        logoView.startAnimation(AnimationUtils.loadAnimation(this, R.anim.logo_show));
+    }
+
+    private void hideSplash() {
+        final View logo = logoView;
+        logo.animate()
+                .alpha(0)
+                .scaleX(0.6f)
+                .scaleY(0.6f)
+                .setInterpolator(new AccelerateInterpolator())
+                .setListener(new AnimatorAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        ((ViewGroup) logo.getParent()).removeView(logo);
+                    }
+                })
+                .start();
+
+        ViewGroup root = (ViewGroup) findViewById(R.id.root);
+
+        View layout = LayoutInflater.from(this).inflate(R.layout.postal_code_layout, root, false);
+        DefaultTypefaces.applyDefaultsToChildren((ViewGroup) layout);
+        root.addView(layout);
 
         setupLayout();
         animateLayout();
-
-        setupPreferences();
-
-        fetchConfig();
     }
 
     private void setupLayout() {
         TruckAnimator.animate(findViewById(R.id.truck));
+
+        setupPreferences();
+
+        fetchConfig();
     }
 
     private void animateLayout() {
@@ -131,14 +181,24 @@ public class PostalCodeActivity extends Activity {
      * @param v
      */
     public void submitPostalCode(View v) {
+
         EditText inputField = (EditText) findViewById(R.id.text_input);
         String postalCode = inputField.getText().toString();
 
         if (!validatePostalCode(postalCode)) {
-            new AlertDialog(this, R.string.invalid_pcode_header, R.string.invalid_pcode_message, new OneButtonAction(R.string.ok, null))
+            new AlertDialog()
+                    .setHeader(getString(R.string.invalid_pcode_header))
+                    .setText(getString(R.string.invalid_pcode_message))
+                    .setActions(new OneButtonAction(R.string.ok, null))
                     .show(getFragmentManager(), null);
             return;
         }
+
+        showSubmitLoading();
+
+        inputField.setEnabled(false);
+
+        findViewById(R.id.submit).setEnabled(false);
 
         lastSubmittedPostalCode = postalCode;
 
@@ -163,11 +223,18 @@ public class PostalCodeActivity extends Activity {
             //  To main
             Intent mainIntent = new Intent(this, MainActivity.class);
             mainIntent.setFlags(Intent.FLAG_ACTIVITY_TASK_ON_HOME);
-            fetchCategories(mainIntent);
+            //fetchCategories(mainIntent);
         } else {
-            new AlertDialog(getString(R.string.undeliverable_header),
-                    getString(R.string.undeliverable_message, lastSubmittedPostalCode),
-                    new OneButtonAction(R.string.ok, null)).show(getFragmentManager(), null);
+            new AlertDialog()
+                    .setHeader(getString(R.string.undeliverable_header))
+                    .setText(getString(R.string.undeliverable_message, lastSubmittedPostalCode))
+                    .setActions(new OneButtonAction(R.string.ok, null))
+                    .show(getFragmentManager(), null);
+
+            findViewById(R.id.text_input).setEnabled(true);
+            findViewById(R.id.submit).setEnabled(true);
+
+            hideSubmitLoading();
         }
     }
 
@@ -206,7 +273,7 @@ public class PostalCodeActivity extends Activity {
      * Fetches configuration.
      */
     private void fetchConfig() {
-        BackendCom.request("out=config&names=min_order_cost,company_address,company_email,company_name,company_phone_num", new byte[0], new BackendCom.RequestCallback() {
+        BackendCom.request("out=config&names=min_order_cost,company_address,company_email,company_name,company_phone_num,delivery_cost", new byte[0], new BackendCom.RequestCallback() {
             @Override
             public void onResponse(String response) {
                 parseConfigResponse(response);
@@ -230,6 +297,7 @@ public class PostalCodeActivity extends Activity {
 
             JSONObject config = new JSONObject(response);
             ShoppingCartActivity.setMinimumCost(Double.parseDouble(config.getString("min_order_cost")));
+            ShoppingCartActivity.setDeliveryCost(Double.parseDouble(config.getString("delivery_cost")));
             AboutAppFragment.setFromConfig(config);
 
         } catch (JSONException ex) {
@@ -290,5 +358,55 @@ public class PostalCodeActivity extends Activity {
 
     public void showAboutApp(View v) {
         AboutFooterHelper.getInstance().showAboutApp(this);
+    }
+
+    public void showSubmitLoading() {
+        LoadingIndicator view = (LoadingIndicator)findViewById(R.id.loading);
+        view.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        View submit = findViewById(R.id.submit);
+
+        submit.animate()
+                .translationX(view.getMeasuredWidth() * 0.5f)
+                .start();
+
+        view.setVisibility(View.VISIBLE);
+
+        view.setScaleX(0.6f);
+        view.setScaleY(0.6f);
+        view.setAlpha(0f);
+        view.animate()
+                .scaleX(1)
+                .scaleY(1)
+                .alpha(1)
+                .setListener(null)
+                .start();
+    }
+
+    public void hideSubmitLoading() {
+        final LoadingIndicator view = (LoadingIndicator)findViewById(R.id.loading);
+        view.measure(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        View submit = findViewById(R.id.submit);
+
+        submit.animate()
+                .translationX(0)
+                .start();
+
+        view.setVisibility(View.VISIBLE);
+
+        view.setScaleX(0.6f);
+        view.setScaleY(0.6f);
+        view.animate()
+                .scaleX(0.6f)
+                .scaleY(0.6f)
+                .alpha(0)
+                .setListener(new AnimatorAdapter(){
+                    @Override
+                    public void onAnimationEnd(Animator animator) {
+                        view.setVisibility(View.GONE);
+                    }
+                })
+                .start();
     }
 }

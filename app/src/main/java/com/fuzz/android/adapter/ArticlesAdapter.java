@@ -8,6 +8,7 @@ import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,6 +34,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     private View.OnClickListener itemsOnClickListener;
     private boolean darkMode;
     private boolean itemsRemovable;
+    private int articleImageSize;
 
     public ArticlesAdapter(ArticleData[] data) {
         articles = new ArrayList<>(Arrays.asList(data));
@@ -70,6 +72,10 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     public ArticlesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.article_item, parent, false);
 
+        if (articleImageSize == 0){
+            articleImageSize = parent.getContext().getResources().getDimensionPixelSize(R.dimen.article_image_size);
+        }
+
         DefaultTypefaces.applyDefaultsToChildren((ViewGroup) v);
         ArticlesViewHolder holder = new ArticlesViewHolder(v);
 
@@ -95,6 +101,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         holder.itemView.setTag(data);
 
         if (data.image == null && !data.fetchingImage) {
+
             data.fetchingImage = true;
 
             final int POSITION = position;
@@ -103,6 +110,8 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             Caches.getBitmapFromUrl(data.imageUrl, new Caches.CacheCallback<Bitmap>() {
                 @Override
                 public void onGotItem(Bitmap item, boolean wasCached) {
+
+                    /*
                     int firstVisibleItemPosition;
                     int lastVisibleItemPosition;
 
@@ -115,14 +124,14 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
                         firstVisibleItemPosition = cast.findFirstVisibleItemPosition();
                         lastVisibleItemPosition = cast.findLastVisibleItemPosition();
                     }
+                    */
 
-                    if (firstVisibleItemPosition <= POSITION && lastVisibleItemPosition >= POSITION) {
+                    if (true) {
                         //  Item visible
                         if (data.imageDrawable == null) {
-                            View refView = HOLDER.imageView;
                             Bitmap scaled = Bitmap.createScaledBitmap(item,
-                                    refView.getMeasuredWidth(),
-                                    refView.getMeasuredHeight(), true);
+                                    articleImageSize,
+                                    articleImageSize, true);
                             data.createImageDrawable(HOLDER.imageView.getResources(), scaled);
                         }
                         HOLDER.imageView.setImageDrawable(data.imageDrawable);

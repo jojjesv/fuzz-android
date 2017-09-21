@@ -59,7 +59,7 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
             long secsAtNotification = i.getLongExtra("secs_at_notif", 0);
             int etaSeconds = i.getIntExtra("eta_minutes", 0) * 60;
 
-            etaSeconds -= (int) (System.currentTimeMillis() / 1000L - secsAtNotification);
+            int secondsPassed = (int) (System.currentTimeMillis() / 1000L - secsAtNotification);
             if (etaSeconds <= 0){
                 onReachedZero((OrderEtaTimer)findViewById(R.id.timer));
                 return;
@@ -67,7 +67,7 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
 
             String deliverer = i.getStringExtra("deliverer");
 
-            onEtaChange(-1, etaSeconds, deliverer);
+            onEtaChange(-1, etaSeconds, secondsPassed, deliverer);
 
         } else {
             boolean debug = false;
@@ -78,7 +78,7 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
                 new android.os.Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
-                        onEtaChange(1, 120, "Johan");
+                        onEtaChange(1, 120, 0, "Johan");
                     }
                 }, 4000);
             }
@@ -160,10 +160,10 @@ public class PostOrderActivity extends Activity implements EtaChangeNotifier.Eta
     }
 
     @Override
-    public void onEtaChange(int orderId, int etaSeconds, String delivererName) {
+    public void onEtaChange(int orderId, int etaSeconds, int secondsPassed, String delivererName) {
         OrderEtaTimer timerView = (OrderEtaTimer) findViewById(R.id.timer);
 
-        timerView.startCountdown(etaSeconds);
+        timerView.startCountdown(etaSeconds, secondsPassed);
         timerView.setAlpha(0f);
         timerView.setScaleX(0.6f);
         timerView.setScaleY(0.6f);

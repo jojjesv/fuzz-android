@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.fuzz.android.view.ArticleView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="@dimen/article_item_height"
     android:clickable="true"
     android:clipChildren="false"
     android:clipToPadding="false"
@@ -86,7 +86,7 @@
         <TextView
             android:id="@+id/article_name"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:clickable="false"
             android:gravity="center" />

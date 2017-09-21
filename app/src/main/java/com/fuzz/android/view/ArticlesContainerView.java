@@ -88,6 +88,11 @@ public class ArticlesContainerView extends FrameLayout {
                         scrollingDirection = DIRECTION_VERTICAL;
                         articlesView.setScrollable(true);
                     }
+
+                    if (scrollingDirection != NONE){
+                        articlesView.releasePendingSelectedArticle();
+                    }
+
                 } else if (scrollingDirection == DIRECTION_HORIZONTAL) {
                     float fraction = deltaXInitial / categoriesSwipeDistance;
 

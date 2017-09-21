@@ -85,4 +85,18 @@
         <item name="android:textSize">14sp</item>
     </style>
 
+    <style name="PaymentForm_TopLevel">
+        <item name="android:orientation">vertical</item>
+        <item name="android:layout_width">match_parent</item>
+    </style>
+
+    <style name="PaymentForm">
+    </style>
+
+    <style name="PaymentForm_PaymentInfo">
+    </style>
+
+    <style name="PaymentForm_DeliveryInfo">
+    </style>
+
 </resources>

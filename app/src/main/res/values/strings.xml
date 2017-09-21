@@ -12,29 +12,32 @@
         <item>Ordnar första hjälpen mot sockersug</item>
         <item>Skördar snacks</item>
     </string-array>
-    <string name="welcome">Hejsan!</string>
-    <string name="input_postal_code">Skriv in ditt postnummer för\natt komma igång.</string>
-    <string name="popular_this_week">Populärt denna vecka</string>
-    <string name="new_badge">Nyhet</string>
-    <string name="contents">Innehåller %s</string>
+    <string name="_continue">Fortsätt</string>
+    <string name="about_app">Om Fuzz</string>
     <string name="and">och</string>
+    <string name="article_name_quantity">%1$s %2$d-pack</string>
+    <string name="cart_cost_appendage">\u0020/ %s kr</string>
+    <string name="cart_items">%d</string>
+    <string name="close">Stäng</string>
+    <string name="contents">Innehåller %s</string>
+    <string name="cost">%s kr</string>
     <string name="drag_to_cart">eller hit till kundvagnen</string>
     <string name="drag_to_info">Dra artikeln hit för mer information</string>
-    <string name="cart_items">%d</string>
-    <string name="cart_cost_appendage">\u0020/ %s kr</string>
-    <string name="cost">%s kr</string>
-    <string name="_continue">Fortsätt</string>
-    <string name="close">Stäng</string>
-    <string name="ok">Ok</string>
-    <string name="quantity">%dp</string>
-    <string name="article_name_quantity">%1$s %2$d-pack</string>
-    <string name="about_app">Om Fuzz</string>
-    <string name="version">Version %s</string>
-    <string name="show_feedback_dialog">Feedback</string>
     <string name="feedback_header">Skicka feedback</string>
-    <string name="enter_feedback_message">Vad funderar du på?</string>
+    <string name="feedback_hint">Vad funderar du på?</string>
+    <string name="articles_fetch_fail">Sortimentet kunde inte hämtas</string>
     <string name="feedback_thanks">Tack för din feedback!</string>
+    <string name="input_postal_code">Skriv in ditt postnummer för\natt komma igång.</string>
+    <string name="new_badge">Nyhet</string>
+    <string name="ok">Ok</string>
+    <string name="popular_this_week">Populärt denna vecka</string>
+    <string name="quantity">%dp</string>
     <string name="send_feedback">Skicka</string>
     <string name="shopping_cart_empty">Kundvagnen är tom. Dra artiklar till vagnen för att lägga till dem.</string>
     <string name="shopping_cart_empty_header">Kundvagn</string>
+    <string name="show_feedback_dialog">Feedback</string>
+    <string name="swipe_categories">Dra sidleds för att få fram\nkategorier.</string>
+    <string name="swipe_categories_hide">För tillbaka dem för att återvända.</string>
+    <string name="version">Version %s</string>
+    <string name="welcome">Hejsan!</string>
 </resources>

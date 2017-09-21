@@ -25,16 +25,22 @@ public class AlertDialog extends BaseDialogFragment {
     private String header;
     private String text;
 
-    public AlertDialog(Context context, @StringRes int header, @StringRes int text, @Nullable DialogActions actions) {
-        this.actions = actions;
-        this.header = context.getString(header);
-        this.text = context.getString(text);
+    public AlertDialog() {
     }
 
-    public AlertDialog(String header, String text, @Nullable DialogActions actions) {
-        this.actions = actions;
+    public AlertDialog setHeader(String header) {
         this.header = header;
+        return this;
+    }
+
+    public AlertDialog setText(String text) {
         this.text = text;
+        return this;
+    }
+
+    public AlertDialog setActions(@Nullable DialogActions actions) {
+        this.actions = actions;
+        return this;
     }
 
     @Nullable
