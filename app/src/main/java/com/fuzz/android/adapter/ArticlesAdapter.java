@@ -2,7 +2,17 @@ package com.fuzz.android.adapter;
 
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffXfermode;
+import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
+import android.os.Build;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawable;
 import android.support.v4.graphics.drawable.RoundedBitmapDrawableFactory;
 import android.support.v7.widget.GridLayoutManager;
@@ -18,15 +28,15 @@ import android.widget.TextView;
 import com.fuzz.android.R;
 import com.fuzz.android.format.Formatter;
 import com.fuzz.android.net.Caches;
+import com.fuzz.android.view.ArticlesView;
 import com.fuzz.android.view.DefaultTypefaces;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
- * Created by Johan on 2017-07-26.
+ * Adapter for producing articles.
  */
-
 public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.ArticlesViewHolder> {
 
     private RecyclerView.LayoutManager viewLayoutManager;
@@ -35,6 +45,8 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     private boolean darkMode;
     private boolean itemsRemovable;
     private int articleImageSize;
+    private int articleItemWidth;
+    private int removeBackgroundColor;
 
     public ArticlesAdapter(ArticleData[] data) {
         articles = new ArrayList<>(Arrays.asList(data));
@@ -71,8 +83,10 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
     @Override
     public ArticlesViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.article_item, parent, false);
+        ArticlesView articlesParent = (ArticlesView) parent;
+        Resources res = parent.getResources();
 
-        if (articleImageSize == 0){
+        if (articleImageSize == 0) {
             articleImageSize = parent.getContext().getResources().getDimensionPixelSize(R.dimen.article_image_size);
         }
 
@@ -80,7 +94,7 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         ArticlesViewHolder holder = new ArticlesViewHolder(v);
 
         if (darkMode) {
-            int lightColor = parent.getResources().getColor(R.color.white);
+            int lightColor = ResourcesCompat.getColor(res, R.color.white, parent.getContext().getTheme());
             holder.costView.setTextColor(lightColor);
             holder.nameView.setTextColor(lightColor);
         }
@@ -88,6 +102,26 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
         if (itemsRemovable) {
             holder.newBadge.setVisibility(View.GONE);
             holder.removeBadge.setVisibility(View.VISIBLE);
+
+            if (Build.VERSION.SDK_INT < 21) {
+                if (removeBackgroundColor == 0) {
+                    removeBackgroundColor = ResourcesCompat.getColor(parent.getResources(), R.color.red, parent.getContext().getTheme());
+                }
+
+                DrawableCompat.setTint(DrawableCompat.wrap(holder.removeBadge.getBackground()),
+                        removeBackgroundColor);
+            }
+        }
+
+        if (articlesParent.getLayout() == ArticlesView.ArticlesLayout.HORIZONTAL) {
+            ViewGroup.LayoutParams params = v.getLayoutParams();
+
+            if (articleItemWidth == 0){
+                articleItemWidth = res.getDimensionPixelSize(R.dimen.article_item_width);
+            }
+
+            params.width = articleItemWidth;
+            v.setLayoutParams(params);
         }
 
         return holder;
@@ -199,9 +233,30 @@ public class ArticlesAdapter extends RecyclerView.Adapter<ArticlesAdapter.Articl
             this.name = name;
         }
 
+        public ArticleData(ArticleData copyFrom) {
+            this.id = copyFrom.id;
+            this.quantity = copyFrom.quantity;
+            this.cost = copyFrom.cost;
+            this.imageUrl = copyFrom.imageUrl;
+            this.name = copyFrom.name;
+            this.isNew = copyFrom.isNew;
+            this.image = copyFrom.image;
+            this.fetchingImage = copyFrom.fetchingImage;
+            this.imageDrawable = copyFrom.imageDrawable;
+            //  Quantity & cost string will be updated
+        }
+
         private void createImageDrawable(Resources res, Bitmap bitmap) {
+            Canvas c = new Canvas(bitmap);
+            Paint p = new Paint();
+            p.setColor(Color.RED);
+            c.drawBitmap(BitmapFactory.decodeResource(res, R.drawable.gloss), null,
+                    new Rect(0, 0, bitmap.getWidth(), bitmap.getHeight()), p);
+
+            c.save();
+
             imageDrawable = RoundedBitmapDrawableFactory.create(res, bitmap);
-            imageDrawable.setCornerRadius(24f);
+            imageDrawable.setCornerRadius(res.getDimension(R.dimen.article_image_radius));
         }
     }
 

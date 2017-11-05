@@ -20,18 +20,26 @@ public abstract class ViewUtils {
 
 
     public static void setEnabled(View v, boolean enabled, boolean animate) {
-        v.setAlpha(enabled ? 0.75f : 1);
-
         float scaleTo = enabled ? 1 : 0.75f;
-        float scaleFrom = enabled ? 0.75f : 1;
+        float scaleFrom = enabled ? 0.8f : 1;
+        float alphaTo = enabled ? 1 : 0.8f;
 
-        v.setScaleX(scaleFrom);
-        v.setScaleY(scaleFrom);
+        v.setEnabled(enabled);
 
-        v.animate()
-                .scaleX(scaleTo)
-                .scaleY(scaleTo)
-                .alpha(enabled ? 1 : 0.75f)
-                .start();
+        if (animate) {
+            v.setAlpha(enabled ? 0.75f : 1);
+            //v.setScaleX(scaleFrom);
+            //v.setScaleY(scaleFrom);
+
+            v.animate()
+//                    .scaleX(scaleTo)
+//                    .scaleY(scaleTo)
+                    .alpha(alphaTo)
+                    .start();
+        } else {
+//            v.setScaleX(scaleTo);
+//            v.setScaleY(scaleTo);
+            v.setAlpha(alphaTo);
+        }
     }
 }

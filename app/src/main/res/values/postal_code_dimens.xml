@@ -2,4 +2,5 @@
 <resources>
     <dimen name="circle1_translation_delta_x">54dp</dimen>
     <dimen name="circle1_translation_delta_y">16dp</dimen>
+    <dimen name="logo_margin">48dp</dimen>
 </resources>

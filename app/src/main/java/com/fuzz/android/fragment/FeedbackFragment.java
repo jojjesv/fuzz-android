@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +26,7 @@ public class FeedbackFragment extends BaseDialogFragment {
      * Needed when showing thanks dialog.
      */
     private Activity activity;
+    private View submitButton;
 
     public void setActivity(Activity activity) {
         this.activity = activity;
@@ -32,19 +35,45 @@ public class FeedbackFragment extends BaseDialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View v = inflater.inflate(R.layout.feedback_layout, container, false);
-        setupView(v);
+        final View v = inflater.inflate(R.layout.feedback_layout, container, false);
         return v;
     }
 
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        setupView(view);
+    }
+
     private void setupView(View v) {
-        View submit = v.findViewById(R.id.submit);
+        View submit = submitButton = v.findViewById(R.id.submit);
 
         ViewUtils.setEnabled(submit, false, false);
         submit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 sendFeedback();
+            }
+        });
+
+        //  Handles submit enabled
+        ((EditText)v.findViewById(R.id.message_input)).addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                boolean enabled = charSequence.length() > 3;
+                if (enabled != submitButton.isEnabled()){
+                    ViewUtils.setEnabled(submitButton, enabled, true);
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
             }
         });
     }

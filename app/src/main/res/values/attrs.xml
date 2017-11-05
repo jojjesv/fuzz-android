@@ -12,5 +12,6 @@
     <attr name="articlesLayout" format="enum">
         <enum name="horizontal" value="0" />
         <enum name="grid" value="1" />
+        <enum name="none" value="2" />
     </attr>
 </resources>

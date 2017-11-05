@@ -7,10 +7,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.IntDef;
 import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
 
 import com.fuzz.android.R;
 import com.fuzz.android.activity.PostOrderActivity;
@@ -29,10 +31,27 @@ public class EtaChangeNotifier extends Service {
      * Query interval in millis.
      */
     public static int QUERY_INTERVAL = 4000;
-
+    private static boolean active;
     private int orderId;
     private boolean canQuery = true;
     private EtaChangeListener listener;
+    private android.os.Handler handler;
+    /**
+     * Task to cancel the notification.
+     */
+    private Runnable autoRemoveNotification;
+
+    /**
+     * Whether this service should be run between activities.
+     * @return
+     */
+    public static boolean isActive() {
+        return active;
+    }
+
+    public static void setActive(boolean active) {
+        EtaChangeNotifier.active = active;
+    }
 
     public EtaChangeListener getListener() {
         return listener;
@@ -52,12 +71,12 @@ public class EtaChangeNotifier extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        handler = new Handler();
+
         loopQuery();
     }
 
     private void loopQuery() {
-        final android.os.Handler handler = new Handler();
-
         //  TODO: Increase initial query interval? Consider time it takes for deliverer to take action
         handler.postDelayed(new Runnable() {
             @Override
@@ -102,6 +121,7 @@ public class EtaChangeNotifier extends Service {
                 int etaMins = obj.getInt("minutes");
                 String deliverer = obj.getString("deliverer");
 
+                setActive(false);
                 notifyUser(etaMins, deliverer);
                 if (listener != null) {
                     listener.onEtaChange(orderId, etaMins * 60, 0, deliverer);
@@ -114,7 +134,8 @@ public class EtaChangeNotifier extends Service {
     }
 
     private void notifyUser(int etaMins, String deliverer) {
-        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        NotificationManager notificationManager =
+                (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
         Intent intent = new Intent(this, PostOrderActivity.class);
         intent.putExtra("secs_at_notif", System.currentTimeMillis() / 1000L);
@@ -125,14 +146,32 @@ public class EtaChangeNotifier extends Service {
         //  FLAG_UPDATE_CURRENT prevents two different extra values!!
         PendingIntent notificationIntent = PendingIntent.getActivity(this, NOTIFICATION_REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
+        if (autoRemoveNotification != null){
+            handler.removeCallbacks(autoRemoveNotification);
+        } else {
+            autoRemoveNotification = new Runnable() {
+                @Override
+                public void run() {
+                    NotificationManager notificationManager =
+                            (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+
+                    notificationManager.cancel(orderId);
+                }
+            };
+        }
+        handler.postDelayed(autoRemoveNotification, etaMins * 60 * 1000);
+
         Notification notification = new Notification.Builder(this)
                 .setContentText(getString(R.string.eta_notification_content, etaMins))
                 .setContentTitle(getString(R.string.eta_notification_title))
                 .setContentIntent(notificationIntent)
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setPriority(Notification.PRIORITY_HIGH)
+                .setSmallIcon(R.drawable.ic_logo_white_36dp)
+                .setPriority(Notification.PRIORITY_DEFAULT)
                 .build();
 
+        if (Build.VERSION.SDK_INT >= 21) {
+            notification.color = ResourcesCompat.getColor(getResources(), R.color.primary, getTheme());
+        }
 
         notification.defaults |= Notification.DEFAULT_VIBRATE | Notification.DEFAULT_SOUND;
         notificationManager.notify(orderId, notification);
@@ -147,7 +186,7 @@ public class EtaChangeNotifier extends Service {
     }
 
     public interface EtaChangeListener {
-        public void onEtaChange(int orderId, int etaSeconds, int secondsPassed, String delivererName);
+        void onEtaChange(int orderId, int etaSeconds, int secondsPassed, String delivererName);
     }
 
     public static class Binder extends android.os.Binder {

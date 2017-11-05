@@ -1,9 +1,10 @@
 package com.fuzz.android.animator;
 
 import android.animation.Animator;
+import android.view.animation.Animation;
 
 /**
- * Created by Johan on 2017-07-30.
+ * Created by johan on 10/12/17.
  */
 public class AnimatorAdapter implements Animator.AnimatorListener {
     @Override

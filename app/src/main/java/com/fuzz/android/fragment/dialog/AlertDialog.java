@@ -1,12 +1,9 @@
 package com.fuzz.android.fragment.dialog;
 
 import android.app.Dialog;
-import android.app.DialogFragment;
-import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.annotation.StringRes;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,6 +21,8 @@ public class AlertDialog extends BaseDialogFragment {
 
     private String header;
     private String text;
+
+    private View view;
 
     public AlertDialog() {
     }
@@ -46,7 +45,7 @@ public class AlertDialog extends BaseDialogFragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.alert_dialog, container, false);
+        View root = this.view = inflater.inflate(R.layout.alert_dialog, null, false);
 
         ((TextView) root.findViewById(android.R.id.title)).setText(header);
         ((TextView) root.findViewById(R.id.text)).setText(text);
@@ -64,6 +63,7 @@ public class AlertDialog extends BaseDialogFragment {
 
         DefaultTypefaces.applyDefaultsToChildren((ViewGroup) root);
 
+
         return root;
     }
 
@@ -71,9 +71,6 @@ public class AlertDialog extends BaseDialogFragment {
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
 
-        Resources res = getResources();
-        dialog.getWindow().setLayout(res.getDimensionPixelSize(R.dimen.dialog_width),
-                res.getDimensionPixelSize(R.dimen.dialog_height));
 
         return dialog;
     }

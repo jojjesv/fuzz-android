@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    style="@style/PaymentForm"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginLeft="@dimen/small_margin"
@@ -11,15 +12,14 @@
     android:paddingBottom="48dp"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="64dp"
-    android:translationZ="8dp"
-    style="@style/PaymentForm">
+    android:paddingTop="24dp"
+    android:translationZ="8dp">
 
     <LinearLayout
         style="@style/PaymentForm_TopLevel"
+        android:layout_height="match_parent"
         android:clipChildren="false"
-        android:clipToPadding="false"
-        android:layout_height="match_parent">
+        android:clipToPadding="false">
 
         <LinearLayout
             style="@style/PaymentForm_PaymentInfo"
@@ -31,9 +31,9 @@
 
             <TextView
                 style="@style/FormLabel.ShoppingCart"
-                android:layout_marginTop="0dp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="0dp"
                 android:text="@string/payment_method" />
 
             <RadioGroup
@@ -42,7 +42,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/field_separator"
                 android:orientation="horizontal"
-                android:weightSum="3">
+                android:weightSum="2">
 
                 <RadioButton
                     android:id="@+id/payment_method_card"
@@ -53,16 +53,18 @@
                     android:text="@string/payment_option_card"
                     android:textColor="@color/white" />
 
+                <!--
                 <RadioButton
                     android:id="@+id/payment_method_swish"
                     style="@style/PaymentMethodRadio"
                     android:drawableBottom="@drawable/ic_swish"
                     android:text="@string/payment_option_swish" />
+-->
 
                 <RadioButton
                     android:id="@+id/payment_method_cash"
                     style="@style/PaymentMethodRadio"
-                    android:drawableBottom="@drawable/ic_card"
+                    android:drawableBottom="@drawable/ic_cash"
                     android:text="@string/payment_option_cash" />
             </RadioGroup>
 
@@ -80,6 +82,7 @@
                 android:visibility="visible">
 
                 <TextView
+                    android:id="@+id/label_card_number"
                     style="@style/FormLabel.ShoppingCart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -118,23 +121,62 @@
                         android:paddingRight="4dp">
 
                         <TextView
+                            android:id="@+id/label_card_expire"
                             style="@style/FormLabel.ShoppingCart"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/card_expiration"
                             android:textSize="14sp" />
 
-                        <EditText
+                        <LinearLayout
                             android:id="@id/expire_date_input"
                             style="@style/EditText.ShoppingCart"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:imeOptions="actionNext"
-                            android:maxLength="5"
-                            android:maxLines="1"
                             android:nextFocusDown="@+id/cvc_input"
-                            android:singleLine="true"
-                            android:text="@string/card_expire_placeholder" />
+                            android:orientation="horizontal">
+
+                            <EditText
+                                android:id="@+id/expire_month_input"
+                                style="@style/EditText.ShoppingCart"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@null"
+                                android:maxLength="2"
+                                android:maxLines="1"
+                                android:minWidth="0dp"
+                                android:padding="0dp"
+                                android:layout_margin="0dp"
+                                android:nextFocusRight="@id/expire_year_input"
+                                android:nextFocusDown="@id/billing_address_input"
+                                android:hint="@string/month_hint"
+                                android:inputType="numberSigned" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="18sp"
+                                android:layout_marginLeft="4dp"
+                                android:layout_marginRight="4dp"
+                                android:text="@string/card_expire_delimiter"/>
+
+                            <EditText
+                                android:id="@+id/expire_year_input"
+                                style="@style/EditText.ShoppingCart"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:background="@null"
+                                android:maxLength="2"
+                                android:maxLines="1"
+                                android:padding="0dp"
+                                android:minWidth="0dp"
+                                android:nextFocusDown="@id/cvc_input"
+                                android:hint="@string/year_hint"
+                                android:inputType="numberSigned"
+                                android:text="" />
+
+                        </LinearLayout>
                     </LinearLayout>
 
                     <LinearLayout
@@ -147,6 +189,7 @@
                         android:paddingLeft="4dp">
 
                         <TextView
+                            android:id="@+id/label_card_cvc"
                             style="@style/FormLabel.ShoppingCart"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
@@ -247,7 +290,7 @@
                     android:tint="@color/primary" />
 
                 <TextView
-                    android:id="@+id/textView"
+                    android:id="@+id/label_address"
                     style="@style/FormLabel.ShoppingCart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -260,9 +303,9 @@
                 style="@style/EditText.ShoppingCart"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:imeOptions="actionNext"
                 android:maxLength="100"
                 android:maxLines="1"
-                android:imeOptions="actionNext"
                 android:nextFocusDown="@+id/house_number_input"
                 android:singleLine="true" />
 
@@ -285,7 +328,6 @@
                     android:clipChildren="false"
                     android:clipToPadding="false"
                     android:orientation="vertical"
-                    android:paddingLeft="4dp"
                     android:paddingRight="4dp">
 
                     <LinearLayout
@@ -373,6 +415,7 @@
                     android:tint="@color/primary" />
 
                 <TextView
+                    android:id="@+id/label_full_name"
                     style="@style/FormLabel.ShoppingCart"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -387,8 +430,38 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="@dimen/field_separator"
                 android:imeOptions="actionNext"
-                android:nextFocusDown="@+id/house_number_input"
-                android:maxLength="255" />
+                android:maxLength="255"
+                android:nextFocusDown="@+id/phone_input" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_phone"
+                    android:tint="@color/primary" />
+
+                <TextView
+                    android:id="@+id/label_phone"
+                    style="@style/FormLabel.ShoppingCart"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="2dp"
+                    android:text="@string/phone" />
+            </LinearLayout>
+
+            <EditText
+                android:id="@id/phone_input"
+                style="@style/EditText.ShoppingCart"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="@dimen/field_separator"
+                android:imeOptions="actionNext"
+                android:inputType="phone"
+                android:maxLength="12"
+                android:nextFocusDown="@+id/message_input" />
 
             <LinearLayout
                 android:layout_width="match_parent"

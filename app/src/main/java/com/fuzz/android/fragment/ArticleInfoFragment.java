@@ -1,5 +1,6 @@
 package com.fuzz.android.fragment;
 
+import android.animation.Animator;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.graphics.Bitmap;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import com.fuzz.android.R;
 import com.fuzz.android.adapter.ArticlesAdapter;
+import com.fuzz.android.animator.AnimatorAdapter;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.net.Caches;
@@ -92,12 +94,22 @@ public class ArticleInfoFragment extends BaseDialogFragment {
     }
 
     private void parseArticleInfo(String response) {
+        boolean failed = ("" + ResponseCodes.FAILED).contentEquals(response);
+
         try {
 
-            JSONObject infoObj = new JSONObject(response);
+            JSONObject infoObj = null;
+            if (!failed) {
+                infoObj = new JSONObject(response);
+            }
+            boolean hasDescription = !failed && infoObj.has("description");
+            boolean hasContents = !failed && infoObj.has("contents");
 
-            boolean hasDescription = infoObj.has("description");
-            boolean hasContents = infoObj.has("contents");
+            if (view == null){
+                //  If no connection
+                dismiss();
+                return;
+            }
 
             TextView descriptionView = (TextView) view.findViewById(R.id.description);
             TextView contentsView = (TextView) view.findViewById(R.id.contents);
@@ -115,8 +127,29 @@ public class ArticleInfoFragment extends BaseDialogFragment {
                 contentsView.setText(R.string.no_contents_info);
             }
 
+            showInfo();
+
         } catch (JSONException ex) {
-            //  TODO: Handle JSON error
+            parseArticleInfo("" + ResponseCodes.FAILED);
         }
+    }
+
+    /**
+     * Shows info, hides loading once info has been parsed.
+     */
+    private void showInfo() {
+        final View root = view.findViewById(R.id.root);
+
+        root.setVisibility(View.VISIBLE);
+        root.setAlpha(0);
+        root.animate().alpha(1).start();
+
+        final View loading = view.findViewById(R.id.loading);
+        loading.animate().alpha(0).setListener(new AnimatorAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                ((ViewGroup) loading.getParent()).removeView(loading);
+            }
+        }).start();
     }
 }

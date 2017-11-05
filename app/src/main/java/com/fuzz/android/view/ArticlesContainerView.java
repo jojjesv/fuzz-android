@@ -1,11 +1,14 @@
 package com.fuzz.android.view;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Resources;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.FrameLayout;
 
 import com.fuzz.android.R;
@@ -26,6 +29,7 @@ public class ArticlesContainerView extends FrameLayout {
     private int categoriesSwipeDistance;
     private byte scrollingDirection = NONE;
     private ArticlesView articlesView;
+    private android.os.Handler handler;
     private boolean wasCategoriesVisible;
 
     public ArticlesContainerView(@NonNull Context context, @Nullable AttributeSet attrs) {
@@ -35,17 +39,24 @@ public class ArticlesContainerView extends FrameLayout {
         Resources res = context.getResources();
         scrollThreshold = res.getDimensionPixelSize(R.dimen.scroll_threshold);
         categoriesSwipeDistance = res.getDimensionPixelSize(R.dimen.categories_swipe_distance);
+
+        handler = new Handler();
     }
 
-    @Override
-    protected void onFinishInflate() {
-        super.onFinishInflate();
+    public ArticlesView getArticlesView() {
+        return articlesView;
+    }
 
-        categoriesView = (CategoriesView) findViewById(R.id.categories);
-        articlesView = (ArticlesView) findViewById(R.id.articles);
+    public void setArticlesView(ArticlesView articlesView) {
+        this.articlesView = articlesView;
+    }
 
-        categoriesView.setContainer(this);
-        articlesView.setContainer(this);
+    public CategoriesView getCategoriesView() {
+        return categoriesView;
+    }
+
+    public void setCategoriesView(CategoriesView categoriesView) {
+        this.categoriesView = categoriesView;
     }
 
     public byte getScrollingDirection(){
@@ -114,7 +125,13 @@ public class ArticlesContainerView extends FrameLayout {
                     categoriesView.determineVisibility();
                 }
 
-                scrollingDirection = NONE;
+                //  Enables other views to check scrolling direction
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        scrollingDirection = NONE;
+                    }
+                });
                 break;
         }
 

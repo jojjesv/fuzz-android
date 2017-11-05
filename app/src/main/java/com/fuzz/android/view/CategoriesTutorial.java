@@ -7,8 +7,6 @@ import android.content.res.Resources;
 import android.graphics.BitmapFactory;
 import android.view.Gravity;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewPropertyAnimator;
 import android.view.WindowManager;
@@ -68,6 +66,7 @@ public class CategoriesTutorial {
         root.addView(touchView);
 
         label = (TextView) LayoutInflater.from(activity).inflate(R.layout.categories_label, root, false);
+        label.setTypeface(DefaultTypefaces.getDefaultText());
         root.addView(label);
     }
 

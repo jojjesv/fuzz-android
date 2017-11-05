@@ -9,11 +9,14 @@ import android.graphics.Color;
 import android.graphics.Rect;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.LinearSmoothScroller;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,6 +34,7 @@ import android.view.animation.OvershootInterpolator;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fuzz.android.R;
 import com.fuzz.android.activity.ShoppingCartActivity;
@@ -70,6 +74,8 @@ public class ArticlesView extends RecyclerView {
     private boolean draggableOverCart;
     private boolean draggableOverInfo;
     private boolean removableOnClick;
+    private View cartBtn;
+    private View infoBtn;
     private View cartBtnBackground;
     private View infoBtnBackground;
     private ArticlesContainerView container;
@@ -86,15 +92,22 @@ public class ArticlesView extends RecyclerView {
     private int actionBarBtnBgColorEnter;
     private int actionBarBtnBgColorExit;
     private ScrollUpdateListener scrollUpdateListener;
+    private ArticlesLayout layout;
+    private boolean shownDoubleTapRemoveMsg;
+
+    /**
+     * Speed factor with smoothScrollToPostition().
+     */
+    private float autoScrollFactor = 1;
 
     public ArticlesView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
 
         TypedArray attrsArray = getContext().getTheme().obtainStyledAttributes(attrs, R.styleable.ArticlesView, 0, 0);
 
-        ArticlesLayout articlesLayout = ArticlesLayout.values()[attrsArray.getInt(R.styleable.ArticlesView_articlesLayout, ArticlesLayout.GRID.ordinal())];
+        ArticlesLayout articlesLayout = this.layout = ArticlesLayout.values()[attrsArray.getInt(R.styleable.ArticlesView_articlesLayout, ArticlesLayout.GRID.ordinal())];
 
-        LayoutManager layout;
+        LayoutManager layout = null;
         if (articlesLayout == ArticlesLayout.HORIZONTAL) {
             layout = new LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false) {
                 @Override
@@ -106,8 +119,21 @@ public class ArticlesView extends RecyclerView {
                 public boolean canScrollVertically() {
                     return false;
                 }
+
+                @Override
+                public void smoothScrollToPosition(RecyclerView recyclerView, State state, int position) {
+                    LinearSmoothScroller scroller = new LinearSmoothScroller(recyclerView.getContext()) {
+                        @Override
+                        protected float calculateSpeedPerPixel(DisplayMetrics displayMetrics) {
+                            return super.calculateSpeedPerPixel(displayMetrics) * autoScrollFactor;
+                        }
+                    };
+
+                    scroller.setTargetPosition(position);
+                    startSmoothScroll(scroller);
+                }
             };
-        } else {
+        } else if (articlesLayout == ArticlesLayout.GRID) {
             //  Grid; default
             layout = new GridLayoutManager(context, context.getResources().getInteger(R.integer.articles_per_row), GridLayoutManager.VERTICAL, false) {
                 @Override
@@ -117,13 +143,27 @@ public class ArticlesView extends RecyclerView {
             };
         }
 
-        setLayoutManager(layout);
+        if (layout != null) {
+            setLayoutManager(layout);
+        }
 
         handler = new Handler();
 
         cacheResources(context);
 
         viewConfig = ViewConfiguration.get(context);
+    }
+
+    public float getAutoScrollFactor() {
+        return autoScrollFactor;
+    }
+
+    public void setAutoScrollFactor(float autoScrollFactor) {
+        this.autoScrollFactor = autoScrollFactor;
+    }
+
+    public ArticlesLayout getLayout() {
+        return layout;
     }
 
     public ScrollUpdateListener getScrollUpdateListener() {
@@ -136,7 +176,6 @@ public class ArticlesView extends RecyclerView {
 
     private void cacheResources(Context context) {
         Resources res = context.getResources();
-        ;
         scrollThreshold = res.getDimensionPixelOffset(R.dimen.articles_scroll_threshold);
         actionBarBtnBgColorEnter = res.getColor(R.color.action_bar_btn_bg_enter);
         actionBarBtnBgColorExit = res.getColor(R.color.action_bar_btn_bg_exit);
@@ -209,6 +248,7 @@ public class ArticlesView extends RecyclerView {
 
     public void setContainer(ArticlesContainerView container) {
         this.container = container;
+        container.setArticlesView(this);
     }
 
     public boolean isDraggingArticle() {
@@ -284,7 +324,17 @@ public class ArticlesView extends RecyclerView {
                             }
 
                             if (removableOnClick) {
-                                remove(pendingSelectedArticleView);
+                                long currentMillis = System.currentTimeMillis();
+                                long maxDeltaMillis = 400;
+
+                                if (currentMillis - pendingSelectedArticleView.millisSinceTap < maxDeltaMillis) {
+                                    pendingSelectedArticleView.millisSinceTap = 0;
+                                    remove(pendingSelectedArticleView);
+                                } else {
+                                    //  Single tap
+                                    maybeShowDoubleTapMessage();
+                                    pendingSelectedArticleView.millisSinceTap = currentMillis;
+                                }
                             }
                         }
 
@@ -295,8 +345,6 @@ public class ArticlesView extends RecyclerView {
                     oldTouchX = -1;
                     oldTouchY = -1;
 
-                    selectedArticleView = null;
-
                     if (hasSelectedArticle) {
                         return true;
                     }
@@ -305,6 +353,23 @@ public class ArticlesView extends RecyclerView {
         }
 
         return super.dispatchTouchEvent(e);
+    }
+
+    /**
+     * Shows a message to the user to double tap an article to remove it.
+     */
+    protected void maybeShowDoubleTapMessage() {
+        if (shownDoubleTapRemoveMsg) {
+            return;
+        }
+
+        Toast t = Toast.makeText(getContext(), R.string.double_tap_remove, Toast.LENGTH_SHORT);
+        DrawableCompat.setTint(DrawableCompat.wrap(t.getView().getBackground()),
+                ResourcesCompat.getColor(getContext().getResources(), R.color.primary_dark, getContext().getTheme()));
+
+        t.show();
+
+        shownDoubleTapRemoveMsg = true;
     }
 
     private void remove(ArticleView view) {
@@ -349,14 +414,29 @@ public class ArticlesView extends RecyclerView {
 
             //  Animate added to cart
             if (draggableDisappearInterpolator == null) {
-                draggableDisappearInterpolator = new AnticipateInterpolator();
+                draggableDisappearInterpolator = new DecelerateInterpolator();
             }
 
+            int[] cartBtnLocation = new int[2];
+            cartBtn.getLocationInWindow(cartBtnLocation);
+
             View draggable = draggableArticleView;
+            draggableAnimator.setListener(null);
             draggableAnimator.cancel();
             draggableAnimator = draggable.animate()
                     .scaleX(0)
                     .scaleY(0)
+                    .translationX(cartBtnLocation[0] + (cartBtn.getMeasuredWidth() - draggableArticleView.getMeasuredWidth()) * 0.5f)
+                    .translationY(cartBtnLocation[1] + (cartBtn.getMeasuredHeight() - draggableArticleView.getMeasuredHeight()) * 0.5f)
+                    .setListener(new AnimatorAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animator) {
+                            ViewGroup parent = (ViewGroup) draggableArticleView.getParent();
+                            if (parent != null) {
+                                parent.removeView(draggableArticleView);
+                            }
+                        }
+                    })
                     .setInterpolator(draggableDisappearInterpolator);
             draggableAnimator.start();
 
@@ -369,6 +449,10 @@ public class ArticlesView extends RecyclerView {
                     .scaleY(1)
                     .start();
 
+            resetButtonOffset(cartBtn);
+
+            selectedArticleView = null;
+
         } else {
             if (draggableReturnInterpolator == null) {
                 //  One-time setup
@@ -377,6 +461,7 @@ public class ArticlesView extends RecyclerView {
             if (draggableOverInfo) {
                 //  Did drag to article info
                 articleInfoListener.showArticleInfo((ArticlesAdapter.ArticleData) selectedArticleView.getTag());
+                resetButtonOffset(infoBtn);
             } else {
                 //  Dragged to nowhere
                 articleListener.onMissedDrag(selectedArticle);
@@ -385,6 +470,7 @@ public class ArticlesView extends RecyclerView {
             int[] selectedViewLocation = new int[2];
             selectedArticleView.getLocationOnScreen(selectedViewLocation);
 
+            draggableAnimator.setListener(null);
             draggableAnimator.cancel();
             draggableAnimator = draggableArticleView.animate().
                     translationX(selectedViewLocation[0])
@@ -395,7 +481,7 @@ public class ArticlesView extends RecyclerView {
                         public void onAnimationEnd(Animator animator) {
                             ViewParent draggableViewParent = draggableArticleView.getParent();
                             if (draggableViewParent != null) {
-                                ((ViewGroup) draggableArticleView.getParent()).removeView(draggableArticleView);
+                                ((ViewGroup) draggableViewParent).removeView(draggableArticleView);
                             }
                             selectedArticle.setAlpha(1f);
 
@@ -408,6 +494,9 @@ public class ArticlesView extends RecyclerView {
 
         animateButtonBackground(cartBtnBackground, ButtonBackgroundAnimation.HIDE);
         animateButtonBackground(infoBtnBackground, ButtonBackgroundAnimation.HIDE);
+
+        draggableOverCart = false;
+        draggableOverInfo = false;
     }
 
     private void onAddedToShoppingCart(ArticleView selected) {
@@ -439,26 +528,43 @@ public class ArticlesView extends RecyclerView {
         oldTouchX = newX;
         oldTouchY = newY;
 
+        onDraggableArticleViewMoved();
+    }
+
+    private void onDraggableArticleViewMoved() {
         Rect cartBnds = shoppingCartBtnBounds;
         Rect infoBnds = articleInfoBtnBounds;
         boolean draggableOverCart = draggableArticleBounds.intersects(cartBnds.left, cartBnds.top, cartBnds.right, cartBnds.bottom);
         boolean draggableOverInfo = draggableArticleBounds.intersects(infoBnds.left, infoBnds.top, infoBnds.right, infoBnds.bottom);
 
-        if (draggableOverCart && !this.draggableOverCart) {
-            //  Just entered
-            animateButtonBackground(cartBtnBackground, ButtonBackgroundAnimation.ENTER);
+        if (draggableOverCart) {
+            if (!this.draggableOverCart) {
+                //  Just entered
+                animateButtonBackground(cartBtnBackground, ButtonBackgroundAnimation.ENTER);
+            }
+
+            offsetButtonToDraggable(cartBtn, cartBnds);
+
         } else if (!draggableOverCart && this.draggableOverCart) {
             //  Just left
             animateButtonBackground(cartBtnBackground, ButtonBackgroundAnimation.EXIT);
+            //  Reset offset
+            resetButtonOffset(cartBtn);
         }
         this.draggableOverCart = draggableOverCart;
 
-        if (draggableOverInfo && !this.draggableOverInfo) {
-            //  Just entered
-            animateButtonBackground(infoBtnBackground, ButtonBackgroundAnimation.ENTER);
+        if (draggableOverInfo) {
+            if (!this.draggableOverInfo) {
+                //  Just entered
+                animateButtonBackground(infoBtnBackground, ButtonBackgroundAnimation.ENTER);
+            }
+
+            offsetButtonToDraggable(infoBtn, infoBnds);
+
         } else if (!draggableOverInfo && this.draggableOverInfo) {
             //  Just left
             animateButtonBackground(infoBtnBackground, ButtonBackgroundAnimation.EXIT);
+            resetButtonOffset(infoBtn);
         }
         this.draggableOverInfo = draggableOverInfo;
 /*
@@ -466,6 +572,40 @@ public class ArticlesView extends RecyclerView {
         Log.i("articles", "info X: " + articleInfoBtnBounds.left + ", Y: " + articleInfoBtnBounds.top + ", w: " + articleInfoBtnBounds.width() + ", h: " + articleInfoBtnBounds.height());
         Log.i("articles", "draggable X: " + draggableArticleBounds.left + ", Y: " + draggableArticleBounds.top + ", w: " + draggableArticleBounds.width() + ", h: " + draggableArticleBounds.height());
         */
+    }
+
+    private void resetButtonOffset(View button) {
+        ViewPropertyAnimator animator = button.animate();
+        animator.cancel();
+        animator.translationX(0).translationY(0).start();
+    }
+
+    /**
+     * Offsets a button to the draggable.
+     */
+    private void offsetButtonToDraggable(View button, Rect buttonBounds) {
+        //  Calc distance from draggable to action bar button
+        float x1 = draggableArticleBounds.centerX(),
+                x2 = buttonBounds.centerX(),
+                y1 = draggableArticleBounds.centerY(),
+                y2 = buttonBounds.centerY();
+
+        x2 -= x1;
+        y2 -= y1;
+
+        double angle = -Math.atan2(x2, y2) - Math.PI / 2;
+        float distance = (float) Math.sqrt((x2 * x2) + (y2 * y2));
+        distance *= 0.075f;
+
+        float x = button.getTranslationX();
+        float y = button.getTranslationY();
+
+        //  Smooth transition in
+        x += ((float) (distance * Math.cos(angle)) - x) * 0.1f;
+        y += ((float) (distance * Math.sin(angle)) - y) * 0.1f;
+
+        button.setTranslationX(x);
+        button.setTranslationY(y);
     }
 
     private void animateButtonBackground(final View background, ButtonBackgroundAnimation animation) {
@@ -492,9 +632,11 @@ public class ArticlesView extends RecyclerView {
                 @Override
                 public void onAnimationEnd(Animator animator) {
                     background.setVisibility(View.GONE);
+                    DrawableCompat.setTint(background.getBackground(), actionBarBtnBgColorExit);
                 }
             };
 
+            background.clearAnimation();
             background.animate()
                     .alpha(reveal ? 1 : 0)
                     .scaleX(scaleTo)
@@ -557,6 +699,10 @@ public class ArticlesView extends RecyclerView {
     }
 
     private void onPickedUpArticle(ArticleView selectedView) {
+        if (selectedArticleView != null){
+            //  Show previous
+            selectedArticleView.setAlpha(1f);
+        }
         selectedArticleView = selectedView;
         selectedView.setPickedUp(true);
 
@@ -592,12 +738,24 @@ public class ArticlesView extends RecyclerView {
             articleInfoBtnBounds.set(viewLocation[0], viewLocation[1],
                     viewLocation[0] + articleInfoBtn.getMeasuredWidth(), viewLocation[1] + articleInfoBtn.getMeasuredHeight());
 
+            Resources res = getResources();
+            int extrudeWidth = res.getDimensionPixelSize(R.dimen.action_bar_btn_extrude_width);
+            int extrudeHeight = res.getDimensionPixelSize(R.dimen.action_bar_btn_extrude_height);
+
+            shoppingCartBtnBounds.left -= extrudeWidth;
+            shoppingCartBtnBounds.bottom += extrudeHeight;
+
+            articleInfoBtnBounds.right += extrudeWidth;
+            articleInfoBtnBounds.bottom += extrudeHeight;
+
             pickUpInterpolators = new Interpolator[]{
                     new DecelerateInterpolator(),
                     new BounceInterpolator()
             };
 
             View root = getRootView();
+            cartBtn = root.findViewById(R.id.shopping_cart_button);
+            infoBtn = root.findViewById(R.id.article_info_button);
             cartBtnBackground = root.findViewById(R.id.shopping_cart_btn_bg);
             infoBtnBackground = root.findViewById(R.id.article_info_btn_bg);
 
@@ -634,6 +792,7 @@ public class ArticlesView extends RecyclerView {
 
         //  Apply pickup animation to draggable
         if (draggableAnimator != null) {
+            draggableAnimator.setListener(null);
             draggableAnimator.cancel();
         }
         draggableAnimator = draggableArticleView.animate()
@@ -644,18 +803,23 @@ public class ArticlesView extends RecyclerView {
                 .setListener(new AnimatorAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animator) {
-                        draggableArticleView.animate()
+                        draggableAnimator.setListener(null);
+                        draggableAnimator.cancel();
+                        draggableAnimator = draggableArticleView.animate()
                                 .scaleX(1)
                                 .scaleY(1)
                                 .setListener(null)
                                 .setDuration(1000)
-                                .setInterpolator(pickUpInterpolators[1])
-                                .start();
+                                .setInterpolator(pickUpInterpolators[1]);
+                        draggableAnimator.start();
                     }
                 });
+        draggableAnimator.start();
 
         animateButtonBackground(cartBtnBackground, ButtonBackgroundAnimation.REVEAL);
         animateButtonBackground(infoBtnBackground, ButtonBackgroundAnimation.REVEAL);
+
+        onDraggableArticleViewMoved();
     }
 
     private void copyArticleViews(ArticleView from, ArticleView to) {
@@ -695,9 +859,10 @@ public class ArticlesView extends RecyclerView {
         cast.setItemsRemovable(removableOnClick);
     }
 
-    private enum ArticlesLayout {
+    public enum ArticlesLayout {
         HORIZONTAL,
-        GRID
+        GRID,
+        NONE
     }
 
     private enum ButtonBackgroundAnimation {
@@ -708,21 +873,21 @@ public class ArticlesView extends RecyclerView {
     }
 
     public interface ArticleInfoListener {
-        public void showArticleInfo(ArticlesAdapter.ArticleData article);
+        void showArticleInfo(ArticlesAdapter.ArticleData article);
     }
 
     public interface ArticleListener {
-        public void onArticleRemoved(ArticlesAdapter.ArticleData data);
+        void onArticleRemoved(ArticlesAdapter.ArticleData data);
 
-        public void onArticleClicked(ArticleView view);
+        void onArticleClicked(ArticleView view);
 
-        public void onStartedDrag(ArticleView view);
+        void onStartedDrag(ArticleView view);
 
         /**
          * Called when an article view has been dragged to an unknown location.
          *
          * @param view
          */
-        public void onMissedDrag(ArticleView view);
+        void onMissedDrag(ArticleView view);
     }
 }

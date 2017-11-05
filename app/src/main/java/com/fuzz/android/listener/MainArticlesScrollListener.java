@@ -24,7 +24,7 @@ public class MainArticlesScrollListener implements ScrollUpdateListener {
 
         int lastChildBottom = recyclerView.getChildAt(recyclerView.getChildCount() - 1).getBottom();
 
-        if (lastChildBottom == recyclerView.getBottom()) {
+        if (lastChildBottom == recyclerView.getBottom() - recyclerView.getPaddingBottom()) {
             //  Inspect layoutmanager
             LinearLayoutManager layoutManager = (LinearLayoutManager) recyclerView.getLayoutManager();
             ArticlesAdapter adapter = (ArticlesAdapter) recyclerView.getAdapter();
@@ -37,6 +37,6 @@ public class MainArticlesScrollListener implements ScrollUpdateListener {
     }
 
     public interface FetchNextPageListener {
-        public void fetchNextPage();
+        void fetchNextPage();
     }
 }

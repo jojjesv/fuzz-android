@@ -1,17 +1,25 @@
 package com.fuzz.android.view;
 
 import android.animation.ValueAnimator;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.os.Handler;
+import android.provider.Settings;
 import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.view.animation.LinearInterpolator;
 import android.widget.TextView;
 
@@ -27,22 +35,11 @@ public class OrderEtaTimer extends TextView {
     private int innerRadius;
     private ValueAnimator countdownAnimator;
     private Paint arcPaint;
-    private Paint innerPaint;
     private OnReachedZeroListener reachedZeroListener;
     private RectF arcOval;
 
     public OrderEtaTimer(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
-
-        arcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        arcPaint.setColor(context.getResources().getColor(R.color.red));
-
-        innerPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        innerPaint.setColor(Color.WHITE);
-
-        Resources res = context.getResources();
-        innerRadius = res.getDimensionPixelSize(R.dimen.eta_timer_inner_radius);
-        setTypeface(Typeface.createFromAsset(res.getAssets(), "fonts/segment7standard.ttf"));
     }
 
     public OnReachedZeroListener getReachedZeroListener() {
@@ -61,9 +58,28 @@ public class OrderEtaTimer extends TextView {
             if (arcOval == null){
                 int mwidth = getMeasuredWidth();
                 int mheight = getMeasuredHeight();
-                arcOval = new RectF(0, 0, mwidth, mheight);
+
+                float padding = 0;
+
+                arcOval = new RectF(padding, padding, mwidth - padding * 2, mheight - padding * 2);
             }
-            float degrees = editMode ? 20 : (float) countdownAnimator.getAnimatedValue();
+            float degrees = editMode ? 315 : (float) countdownAnimator.getAnimatedValue();
+
+            if (arcPaint == null){
+                //  Has layout
+                Resources res = getResources();
+                Resources.Theme theme = getContext().getTheme();
+
+                arcPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+                arcPaint.setShader(
+                        new LinearGradient(0,
+                                0, arcOval.width(), arcOval.height(),
+                                ResourcesCompat.getColor(res, R.color.light_blue, theme),
+                                ResourcesCompat.getColor(res, R.color.red, theme),
+                                Shader.TileMode.CLAMP)
+                );
+            }
+
             canvas.drawArc(arcOval, 270, -degrees, true, arcPaint);
 
             //canvas.drawCircle(mwidth * 0.5f, mheight * 0.5f, innerRadius, innerPaint);
@@ -95,14 +111,30 @@ public class OrderEtaTimer extends TextView {
             return;
         }
 
+        //  https://stackoverflow.com/questions/36647444/how-to-read-animation-scale-duration-flag-in-marshmallow
+        ContentResolver cr = getContext().getContentResolver();
+        float animatorSpeed;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1)
+        {
+            animatorSpeed = Settings.Global.getFloat(cr,
+                    Settings.Global.ANIMATOR_DURATION_SCALE,
+                    1);
+        }
+        else
+        {
+            animatorSpeed = Settings.System.getFloat(cr,
+                    Settings.System.ANIMATOR_DURATION_SCALE,
+                    1);
+        }
+
         countdownAnimator = ValueAnimator.ofFloat((int)(360f * (1 - ((float)secondsPassed / seconds))), 0);
-        countdownAnimator.setDuration(2000 * seconds);
+        countdownAnimator.setDuration((long)((1000 * seconds) / animatorSpeed));
         countdownAnimator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
                 //  TODO: Calculate dirty area
                 postInvalidate();
-                //Log.d("Timer", "Play time: " + valueAnimator.getCurrentPlayTime() + ", fraction: " + valueAnimator.getAnimatedFraction());
+                Log.d("Timer", "Play time: " + valueAnimator.getCurrentPlayTime() + ", fraction: " + valueAnimator.getAnimatedFraction());
             }
         });
         countdownAnimator.setInterpolator(new LinearInterpolator());
@@ -125,6 +157,6 @@ public class OrderEtaTimer extends TextView {
     }
 
     public interface OnReachedZeroListener {
-        public void onReachedZero(OrderEtaTimer timer);
+        void onReachedZero(OrderEtaTimer timer);
     }
 }

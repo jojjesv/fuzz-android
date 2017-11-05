@@ -3,6 +3,7 @@ package com.fuzz.android.net;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.support.annotation.Nullable;
 
 
 import com.fuzz.android.R;
@@ -43,11 +44,17 @@ public class Caches {
         dl.execute(url);
     }
 
+    @Nullable
+    public static Bitmap getBitmapFromCache(final String url) {
+        Bitmap cached = bmpCache.get(url);
+        return cached;
+    }
+
     public static void replaceInBitmapCache(String url, Bitmap newBitmap) {
         bmpCache.put(url, newBitmap);
     }
 
     public interface CacheCallback<T> {
-        public void onGotItem(T item, boolean wasCached);
+        void onGotItem(T item, boolean wasCached);
     }
 }

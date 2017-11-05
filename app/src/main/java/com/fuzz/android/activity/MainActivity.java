@@ -1,34 +1,37 @@
 package com.fuzz.android.activity;
 
-import android.animation.ValueAnimator;
+import android.animation.Animator;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
+import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.text.SpannableString;
-import android.text.Spanned;
-import android.text.style.ForegroundColorSpan;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateDecelerateInterpolator;
+import android.view.ViewPropertyAnimator;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.animation.Interpolator;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import com.fuzz.android.R;
 import com.fuzz.android.adapter.ArticlesAdapter;
 import com.fuzz.android.adapter.CategoriesAdapter;
+import com.fuzz.android.animator.AnimatorAdapter;
 import com.fuzz.android.backend.BackendCom;
 import com.fuzz.android.backend.ResponseCodes;
 import com.fuzz.android.format.Formatter;
@@ -36,9 +39,12 @@ import com.fuzz.android.fragment.ArticleInfoFragment;
 import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
 import com.fuzz.android.listener.MainArticlesScrollListener;
+import com.fuzz.android.net.Caches;
 import com.fuzz.android.preferences.PreferenceKeys;
+import com.fuzz.android.service.EtaChangeNotifier;
 import com.fuzz.android.util.StringUtils;
 import com.fuzz.android.view.ArticleView;
+import com.fuzz.android.view.ArticlesContainerView;
 import com.fuzz.android.view.ArticlesView;
 import com.fuzz.android.view.CategoriesTutorial;
 import com.fuzz.android.view.CategoriesView;
@@ -49,9 +55,22 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
 
 public class MainActivity extends AppCompatActivity implements ArticlesView.ArticleInfoListener, ArticlesView.ArticleListener, ShoppingCartActivity.ShoppingCartListener,
         MainArticlesScrollListener.FetchNextPageListener {
+
+    private static JSONObject config;
+
+    /**
+     * Parses configuration.
+     *
+     * @param config Configuration JSON
+     */
+    public static void setConfig(JSONObject config) {
+        MainActivity.config = config;
+    }
 
     private CategoriesAdapter.CategoryData[] categories;
     private ArrayList<Integer> selectedCategories;
@@ -68,6 +87,11 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     private boolean fetchingArticles;
     private View[] backgroundItems;
     private float[] backgroundItemParallax;
+    private View articlesFetchIndicatorView;
+    private View actionBarOverlay;
+    private ImageView actionBarLogo;
+    private CategoriesView categoriesView;
+    private boolean runningOrderEtaService;
 
     public MainActivity() {
         selectedCategories = new ArrayList<>();
@@ -79,6 +103,15 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         if (canFetchArticles()) {
             currentArticlePage++;
             fetchArticles();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (categoriesView.isVisible()) {
+            categoriesView.changeVisibility(true);
+        } else {
+            super.onBackPressed();
         }
     }
 
@@ -98,10 +131,17 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         fetchArticles();
 
-        maybeShowTutorial();
+        if (!parseConfig()) {
+            maybeShowTutorial();
+        }
     }
 
     private void setupLayout() {
+        categoriesView = (CategoriesView) findViewById(R.id.categories);
+        actionBarOverlay = findViewById(R.id.action_bar_overlay);
+        actionBarLogo = (ImageView) findViewById(R.id.logo);
+        articlesFetchIndicatorView = findViewById(R.id.articles_fetch_indicator);
+
         ArticlesView articles = (ArticlesView) findViewById(R.id.articles);
         articles.setItemsMovable(true);
         articles.setArticleInfoListener(this);
@@ -120,9 +160,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         CategoriesView categories = (CategoriesView) findViewById(R.id.categories);
         articles.setCategoriesView(categories);
-
-        View root = findViewById(R.id.root);
-        //currentBackgroundColor = ((ColorDrawable) root.getBackground()).getColor();
+        categories.setTransitionListener(createCategoriesTransitionListener());
 
         Resources res = getResources();
         DisplayMetrics displayMetrics = res.getDisplayMetrics();
@@ -132,7 +170,171 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         articlesPerPage = rowsPerPage * articlesPerRow;
 
+        ArticlesContainerView articlesContainer = (ArticlesContainerView) findViewById(R.id.articles_container);
+
+        categories.setContainer(articlesContainer);
+        articles.setContainer(articlesContainer);
+
         setupLayoutBackground();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (cartItemCount != ShoppingCartActivity.getItemCount()) {
+            updateCartCost();
+        }
+
+        if (!runningOrderEtaService && EtaChangeNotifier.isActive()) {
+            //  Run service
+            Intent serviceIntent = new Intent(this, EtaChangeNotifier.class);
+            serviceIntent.putExtra("order_id", ShoppingCartActivity.getLastOrderId());
+
+            startService(serviceIntent);
+
+            runningOrderEtaService = true;
+        }
+    }
+
+    /**
+     * Parses the config and maybe shows a dialog. Returns true if so.
+     */
+    private boolean parseConfig() {
+        try {
+
+            Calendar calendar = GregorianCalendar.getInstance();
+            String daysOpen = config.getString("open_days");
+
+            int day = calendar.get(Calendar.DAY_OF_WEEK);
+            char dayChar = Character.forDigit(day, 10);
+            for (int i = 0, n = daysOpen.length() - 1; i <= n; i++) {
+                if (daysOpen.charAt(i) == dayChar) {
+                    //  Acceptable
+                    break;
+                }
+
+                if (i == n) {
+                    //  TODO: Mentions the next available day for delivery
+                    //  Not deliverable at this day of week
+                    onUndeliverable(day, null);
+                    return true;
+                }
+            }
+
+            //  Check time
+            String openTime = config.getString("open_time");
+            String closeTime = config.getString("closing_time");
+
+            String[] openTimeFields = openTime.split(":");
+            String[] closeTimeFields = closeTime.split(":");
+
+            int currentHour = calendar.get(Calendar.HOUR_OF_DAY);
+            int currentMinute = calendar.get(Calendar.MINUTE);
+
+            boolean currentBeforeOpenTime = currentMinute + 60 * currentHour <
+                    Integer.parseInt(openTimeFields[0]) + 60 * Integer.parseInt(openTimeFields[1]);
+
+            boolean currentAfterCloseTime = currentMinute + 60 * currentHour >
+                    Integer.parseInt(closeTimeFields[1]) + 60 * Integer.parseInt(closeTimeFields[0]);
+
+            if (currentBeforeOpenTime || currentAfterCloseTime) {
+                //  Before opening or after closing
+                onUndeliverable(0, openTime);
+                return true;
+            }
+
+        } catch (JSONException ex) {
+
+        }
+
+        return false;
+    }
+
+    /**
+     * Called if delivery is current unavailable.
+     *
+     * @param dayOfWeek Optional (0 if none), if a day of week is undeliverable.
+     * @param openTime  Optional (nullable), if undeliverable until such open time (HH:mm).
+     */
+    private void onUndeliverable(int dayOfWeek, @Nullable String openTime) {
+        boolean isDayOfWeek = dayOfWeek > 0;
+
+        String dayOfWeekString = isDayOfWeek ? getResources().getStringArray(R.array.days_of_week)[dayOfWeek - 1]
+                : null;
+        new AlertDialog()
+                .setHeader(getString(R.string.undeliverable_datetime_header))
+                .setText(
+                        getString(R.string.undeliverable_datetime,
+                                getString(isDayOfWeek ? R.string.undeliverable_datetime_day : R.string.undeliverable_datetime_time,
+                                        isDayOfWeek ? dayOfWeekString : openTime))
+                )
+                .setActions(new OneButtonAction(R.string.ok, null))
+                .show(getFragmentManager(), null);
+    }
+
+    /**
+     * @return A transition listener which will impact the action bar overlay's alpha.
+     */
+    private CategoriesView.TransitionListener createCategoriesTransitionListener() {
+        return new CategoriesView.TransitionListener() {
+            Drawable wrappedLogo = DrawableCompat.wrap(actionBarLogo.getDrawable());
+
+            int logoFromR;
+            int logoFromG;
+            int logoFromB;
+            int logoFromA;
+            int logoToR;
+            int logoToG;
+            int logoToB;
+            int logoToA;
+            Interpolator logoTintInterpolator;
+
+            {
+                Resources res = getResources();
+                Resources.Theme theme = getTheme();
+
+                int logoFrom = ResourcesCompat.getColor(res, R.color.action_bar_logo_light, theme);
+                logoFromR = Color.red(logoFrom);
+                logoFromG = Color.green(logoFrom);
+                logoFromB = Color.blue(logoFrom);
+                logoFromA = Color.alpha(logoFrom);
+
+                int logoTo = ResourcesCompat.getColor(res, R.color.action_bar_logo_dark, theme);
+
+                logoToR = Color.red(logoTo);
+                logoToG = Color.green(logoTo);
+                logoToB = Color.blue(logoTo);
+                logoToA = Color.alpha(logoTo);
+
+                logoTintInterpolator = new Interpolator() {
+                    @Override
+                    public float getInterpolation(float v) {
+                        if (v < 0.5f) {
+                            v *= 2;
+                            return (v * v * v) * 0.5f;
+                        }
+
+                        v *= 2;
+                        v -= 2;
+                        return (v * v * v + 2) * 0.5f;
+                    }
+                };
+            }
+
+            @Override
+            public void onValueUpdated(float newVal) {
+                actionBarOverlay.setAlpha(1f - newVal);
+
+                newVal = logoTintInterpolator.getInterpolation(newVal);
+
+                int modulatedLogoR = (int) (logoFromR + (logoToR - logoFromR) * newVal);
+                int modulatedLogoG = (int) (logoFromG + (logoToG - logoFromG) * newVal);
+                int modulatedLogoB = (int) (logoFromB + (logoToB - logoFromB) * newVal);
+                int modulatedLogoA = (int) (logoFromA + (logoToA - logoFromA) * newVal);
+
+                DrawableCompat.setTint(wrappedLogo, Color.argb(modulatedLogoA, modulatedLogoR, modulatedLogoG, modulatedLogoB));
+            }
+        };
     }
 
     private void setupLayoutBackground() {
@@ -159,9 +361,9 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         for (int i = 0, n = backgroundItems.length; i < n; i++) {
             v = backgroundItems[i];
 
-            newTranslationY = v.getTranslationY() + yDelta *  backgroundItemParallax[i];
-            if (parentHeight == -1){
-                parentHeight = ((ViewGroup)v.getParent()).getMeasuredHeight();
+            newTranslationY = v.getTranslationY() + yDelta * backgroundItemParallax[i];
+            if (parentHeight == -1) {
+                parentHeight = ((ViewGroup) v.getParent()).getMeasuredHeight();
             }
 
             if (yDelta < 0 ? newTranslationY < -v.getMeasuredHeight() : newTranslationY > parentHeight) {
@@ -201,21 +403,9 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
         int itemCount = ShoppingCartActivity.getItemCount();
 
-        String countStr = getString(R.string.cart_items, itemCount);
-        String costStr = getString(R.string.cart_cost_appendage, Formatter.formatCurrency(cartCost));
+        String costStr = getString(R.string.cart_cost, Formatter.formatCurrency(cartCost));
 
-        SpannableString spannable = new SpannableString(countStr + costStr);
-
-        int costStart = countStr.length() - 1;
-
-        ForegroundColorSpan countColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.white));
-        spannable.setSpan(countColorSpan, 0, costStart + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-        ForegroundColorSpan costColorSpan = new ForegroundColorSpan(getResources().getColor(R.color.white_translucent));
-        spannable.setSpan(costColorSpan, costStart + 1, spannable.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-
-
-        badge.setText(spannable);
+        badge.setText(costStr);
 
         if (cartItemCount == 0) {
             //  Went from no items added
@@ -230,15 +420,39 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     private void parseCategories(String categoriesJson) {
         try {
 
-            JSONArray categoriesArray = new JSONArray(categoriesJson);
+            JSONObject obj = new JSONObject(categoriesJson);
+            JSONArray categoriesArray = obj.getJSONArray("items");
             JSONObject category;
             int color;
+
+            String baseImageUrl = obj.getString("base_image_url");
+
+            Resources res = getResources();
+            Resources.Theme theme = getTheme();
+
+            int textColorLight = ResourcesCompat.getColor(res, R.color.category_text_light, theme);
+            int textColorDark = ResourcesCompat.getColor(res, R.color.category_text_dark, theme);
+
+            boolean isBackgroundDark;
 
             categories = new CategoriesAdapter.CategoryData[categoriesArray.length()];
             for (int i = 0, n = categoriesArray.length(); i < n; i++) {
                 category = categoriesArray.getJSONObject(i);
                 color = Color.parseColor("#" + category.getString("color"));
-                categories[i] = new CategoriesAdapter.CategoryData(category.getInt("id"), category.getString("name"), color);
+
+                isBackgroundDark = (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255 < 0.75;
+
+                //  Trailing space in name for design
+                categories[i] = new CategoriesAdapter.CategoryData(
+                        category.getInt("id"),
+                        category.getString("name") + " ",
+                        color,
+                        isBackgroundDark ? textColorLight : textColorDark,
+                        category.has("background") ?
+                                Caches.getBitmapFromCache(
+                                        baseImageUrl + category.getString("background")
+                                ) : null
+                );
             }
 
             CategoriesAdapter adapter = new CategoriesAdapter(this, categories);
@@ -283,7 +497,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         currentArticlePage = 0;
         fetchArticles();
 
-        //changeBackgroundColor(categoryData.color);
+        //changeBackgroundColor(categoryData.backgroundColor);
 
         boolean isFrontpage = selectedCategories.isEmpty();
 
@@ -295,7 +509,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
             ArrayList<String> categoryNames = new ArrayList<>();
             for (int i = 0, n = categories.length; i < n; i++) {
                 if (categories[i].enabled) {
-                    categoryNames.add(categories[i].name);
+                    categoryNames.add(categories[i].name.trim());
                 }
             }
             categoriesHeader.setText(StringUtils.glue(this, categoryNames.toArray(new String[0])));
@@ -304,36 +518,12 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
         hideDragNoteViews();
     }
 
-    private void changeBackgroundColor(final int newColor) {
-        final View root = findViewById(R.id.root);
-        ValueAnimator animator = ValueAnimator.ofFloat(0, 1);
-        animator.setDuration(500);
-        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-            int fromR = Color.red(currentBackgroundColor);
-            int fromG = Color.green(currentBackgroundColor);
-            int fromB = Color.blue(currentBackgroundColor);
-            int toR = Color.red(newColor);
-            int toG = Color.green(newColor);
-            int toB = Color.blue(newColor);
-
-            @Override
-            public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                float val = (float) valueAnimator.getAnimatedValue();
-
-                int r = (int) (fromR + (toR - fromR) * val);
-                int g = (int) (fromG + (toG - fromG) * val);
-                int b = (int) (fromB + (toB - fromB) * val);
-
-                root.setBackgroundColor(Color.argb(255, r, g, b));
-            }
-        });
-        animator.setInterpolator(new AccelerateDecelerateInterpolator());
-        animator.start();
-
-        currentBackgroundColor = newColor;
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        return super.dispatchTouchEvent(ev);
     }
 
-    private boolean canFetchArticles(){
+    private boolean canFetchArticles() {
         return !fetchingArticles && !fetchedLastArticlePage;
     }
 
@@ -369,6 +559,8 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
             //  Fetch popular articles
             queryString.append("&popular");
         }
+
+        setArticleFetchIndicatorVisibility(true);
 
         BackendCom.request(queryString.toString(), (byte[]) null, new BackendCom.RequestCallback() {
             @Override
@@ -466,11 +658,40 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
             setNoItemsVisibility(true);
         }
 
+        if (fetchedLastArticlePage) {
+            //  Remove padding used for loading indication purposes
+            ArticlesView articles = (ArticlesView) findViewById(R.id.articles);
+            articles.setPadding(0, articles.getPaddingTop(), 0, 0);
+        }
+
         fetchingArticles = false;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                setArticleFetchIndicatorVisibility(false);
+            }
+        });
     }
 
-    private void keepArticlesScroll(ArticlesView view){
-        final LinearLayoutManager layoutManager = (LinearLayoutManager)view.getLayoutManager();
+    private void setArticleFetchIndicatorVisibility(boolean visible) {
+        ViewPropertyAnimator anim = articlesFetchIndicatorView.animate();
+        anim.cancel();
+
+        articlesFetchIndicatorView.setVisibility(View.VISIBLE);
+        articlesFetchIndicatorView.setAlpha(visible ? 0 : 1);
+
+        anim.alpha(visible ? 1 : 0).setDuration(150);
+        anim.setListener(visible ? null : new AnimatorAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animator) {
+                articlesFetchIndicatorView.setVisibility(View.GONE);
+            }
+        });
+        anim.start();
+    }
+
+    private void keepArticlesScroll(ArticlesView view) {
+        final LinearLayoutManager layoutManager = (LinearLayoutManager) view.getLayoutManager();
         final int lastItem = layoutManager.findLastCompletelyVisibleItemPosition();
         view.addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
             @Override
@@ -508,7 +729,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     /**
      * Shows the user where to drag an article.
      */
-    private void showDraggingHints() {
+    public void showDraggingHints(@Nullable View v) {
         //  Hide cart cost
         final View cartCost = findViewById(R.id.cart_cost);
         cartCost.animate().alpha(0).start();
@@ -588,7 +809,7 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
     @Override
     public void onMissedDrag(ArticleView view) {
         if (!showingNoteViews) {
-            showDraggingHints();
+            showDraggingHints(null);
         }
     }
 
@@ -609,6 +830,6 @@ public class MainActivity extends AppCompatActivity implements ArticlesView.Arti
 
     @Override
     public void onArticleClicked(ArticleView view) {
-        showDraggingHints();
+        showDraggingHints(null);
     }
 }

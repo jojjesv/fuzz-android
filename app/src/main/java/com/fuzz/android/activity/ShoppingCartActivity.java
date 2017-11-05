@@ -2,7 +2,9 @@ package com.fuzz.android.activity;
 
 import android.animation.Animator;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
@@ -11,11 +13,14 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.IdRes;
 import android.support.annotation.Nullable;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.DefaultItemAnimator;
+import android.support.v7.widget.LinearLayoutManager;
 import android.text.Editable;
 import android.text.SpannableString;
 import android.text.Spanned;
+import android.text.TextWatcher;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.view.View;
@@ -24,6 +29,7 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.fuzz.android.R;
 import com.fuzz.android.adapter.ArticlesAdapter;
@@ -35,7 +41,8 @@ import com.fuzz.android.fragment.dialog.AlertDialog;
 import com.fuzz.android.fragment.dialog.OneButtonAction;
 import com.fuzz.android.helper.AboutFooterHelper;
 import com.fuzz.android.listener.CardNumberFormatWatcher;
-import com.fuzz.android.listener.MonthYearFormatWatcher;
+import com.fuzz.android.preferences.PreferenceKeys;
+import com.fuzz.android.util.Encryption;
 import com.fuzz.android.view.ArticleView;
 import com.fuzz.android.view.ArticlesView;
 import com.fuzz.android.view.DefaultTypefaces;
@@ -67,17 +74,62 @@ public class ShoppingCartActivity extends Activity {
      * Delivery cost.
      */
     private static double deliveryCost;
+    private static int lastOrderId;
 
     static {
         shoppingCart = new ArrayList<>();
     }
 
+    private final int placeOrderTries = 3;
     private Interpolator removeItemInterpolator;
     private String paymentToken;
     private ArticlesAdapter articlesAdapter;
     private View oldPaymentInfoLayout;
     private int paymentMethodId;
     private View loadingView;
+    private String labelRequiredAppendage;
+    private ForegroundColorSpan labelRequiredSpan;
+    private SharedPreferences preferences;
+    /**
+     * Remaining tries, as first may fail.
+     */
+    private int placeOrderTriesRemaining;
+
+    public static int getLastOrderId() {
+        return lastOrderId;
+    }
+
+    public static void setLastOrderId(int lastOrderId) {
+        ShoppingCartActivity.lastOrderId = lastOrderId;
+    }
+
+    /**
+     * @return A mapped shopping cart array where articles of same type are merged.
+     */
+    private static final ArticlesAdapter.ArticleData[] getMappedShoppingCart() {
+        ArrayList<ArticlesAdapter.ArticleData> mapped = new ArrayList<>();
+        ArticlesAdapter.ArticleData obj;
+        for (ArticlesAdapter.ArticleData selected : shoppingCart) {
+            if (mapped.size() == 0) {
+                mapped.add(new ArticlesAdapter.ArticleData(selected));
+            } else {
+                //  Search for obj with same id
+                for (int i = 0, n = mapped.size() - 1; i <= n; i++) {
+                    obj = mapped.get(i);
+                    if (obj.id == selected.id) {
+                        obj.quantity += selected.quantity;
+                        obj.cost += selected.cost;
+                        break;
+                    } else if (i == n) {
+                        //  Last; doesn't exist
+                        mapped.add(new ArticlesAdapter.ArticleData(selected));
+                    }
+                }
+            }
+        }
+
+        return mapped.toArray(new ArticlesAdapter.ArticleData[0]);
+    }
 
     public static double getDeliveryCost() {
         return deliveryCost;
@@ -108,7 +160,16 @@ public class ShoppingCartActivity extends Activity {
     }
 
     public static void removeFromCart(ArticlesAdapter.ArticleData data) {
-        shoppingCart.remove(data);
+        for (int i = 0, n = shoppingCart.size(); i < n; i++) {
+            //  Comparing id
+            if (shoppingCart.get(i).id == data.id) {
+                shoppingCart.remove(i);
+                i--;
+                n--;
+                //  Don't break as there could be multiple occurrences
+            }
+        }
+
         if (shoppingCartListener != null) {
             shoppingCartListener.onItemRemoved(data);
         }
@@ -157,11 +218,64 @@ public class ShoppingCartActivity extends Activity {
         return shoppingCart.size();
     }
 
+    /**
+     * Checks form data stored in preferences.
+     */
+    private void checkPreferences() {
+        preferences = getPreferences(Context.MODE_PRIVATE);
+
+        String address = preferences.getString(PreferenceKeys.ADDRESS, null);
+        if (address != null) {
+            ((EditText) findViewById(R.id.billing_address_input)).setText(address);
+        }
+
+        String floor = preferences.getString(PreferenceKeys.FLOOR, null);
+        if (floor != null) {
+            ((EditText) findViewById(R.id.floor_input)).setText(floor);
+        }
+
+        String doorCode = preferences.getString(PreferenceKeys.DOOR_CODE, null);
+        if (doorCode != null) {
+            ((EditText) findViewById(R.id.door_code_input)).setText(doorCode);
+        }
+
+        String fullName = preferences.getString(PreferenceKeys.FULL_NAME, null);
+        if (fullName != null) {
+            ((EditText) findViewById(R.id.full_name_input)).setText(fullName);
+        }
+
+        String phoneNum = preferences.getString(PreferenceKeys.PHONE_NUM, null);
+        if (phoneNum != null) {
+            ((EditText) findViewById(R.id.phone_input)).setText(phoneNum);
+        }
+
+        String cardDetails = preferences.getString(PreferenceKeys.CARD_NUMBER, null);
+        if (cardDetails != null) {
+            cardDetails = Encryption.decrypt(cardDetails);
+            String[] fields = cardDetails.split(";");
+
+            ((EditText) findViewById(R.id.card_number_input)).setText(fields[0]);
+
+            String[] expiration = fields[1].split("/");
+            for (int i = 0; i < expiration.length; i++) {
+                if (expiration[i].length() == 1) {
+                    //  Zero-fill
+                    expiration[i] = "0" + expiration[i];
+                }
+            }
+            View expireDateInput = findViewById(R.id.expire_date_input);
+
+            ((EditText) expireDateInput.findViewById(R.id.expire_month_input)).setText(expiration[0]);
+            ((EditText) expireDateInput.findViewById(R.id.expire_year_input)).setText(expiration[1]);
+        }
+    }
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_shopping_cart);
         setupLayout();
+        checkPreferences();
         updateSelectedArticlesView();
     }
 
@@ -174,11 +288,44 @@ public class ShoppingCartActivity extends Activity {
     private void setupLayout() {
         View cardFields = findViewById(R.id.card_payment_group);
 
+        View expireDate = findViewById(R.id.expire_date_input);
+        final EditText monthExpireInput = (EditText) expireDate.findViewById(R.id.expire_month_input);
+        final EditText yearExpireInput = (EditText) expireDate.findViewById(R.id.expire_year_input);
+
+        expireDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                monthExpireInput.requestFocus();
+            }
+        });
+
+        TextWatcher nextFieldOnMaxLen = new TextWatcher() {
+            private int oldLen;
+
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                int len = charSequence.length();
+                if (len == 2 && oldLen == 1) {
+                    //  (User did input) Focus on year
+                    yearExpireInput.requestFocus();
+                }
+                oldLen = len;
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        };
+        monthExpireInput.addTextChangedListener(nextFieldOnMaxLen);
+
         EditText cardNumInput = (EditText) cardFields.findViewById(R.id.card_number_input);
         cardNumInput.addTextChangedListener(new CardNumberFormatWatcher());
-
-        EditText cardExpireInput = (EditText) cardFields.findViewById(R.id.expire_date_input);
-        cardExpireInput.addTextChangedListener(new MonthYearFormatWatcher(cardExpireInput));
 
         setupRadioGroups();
 
@@ -187,6 +334,19 @@ public class ShoppingCartActivity extends Activity {
             @Override
             public void onArticleRemoved(ArticlesAdapter.ArticleData data) {
                 removeFromCart(data);
+
+                if (shoppingCart.size() == 0) {
+                    //  Empty cart, return to main
+                    Toast t = Toast.makeText(ShoppingCartActivity.this, R.string.cart_now_empty, Toast.LENGTH_SHORT);
+
+                    DrawableCompat.setTint(DrawableCompat.wrap(t.getView().getBackground()),
+                            ResourcesCompat.getColor(getResources(), R.color.primary_dark, getTheme()));
+
+                    t.show();
+
+                    onBackPressed();
+                    return;
+                }
                 updateTotalCost();
             }
 
@@ -209,6 +369,26 @@ public class ShoppingCartActivity extends Activity {
         loadingView = findViewById(R.id.loading);
 
         DefaultTypefaces.applyDefaultsToViews(this);
+
+        labelRequiredAppendage = getString(R.string.label_required_appendage);
+        labelRequiredSpan = new ForegroundColorSpan(ResourcesCompat.getColor(getResources(), R.color.shopping_cart_light, getTheme()));
+
+        appendRequiredToLabel((TextView) findViewById(R.id.label_card_number));
+        appendRequiredToLabel((TextView) findViewById(R.id.label_card_expire));
+        appendRequiredToLabel((TextView) findViewById(R.id.label_card_cvc));
+        appendRequiredToLabel((TextView) findViewById(R.id.label_address));
+        appendRequiredToLabel((TextView) findViewById(R.id.label_full_name));
+        appendRequiredToLabel((TextView) findViewById(R.id.label_phone));
+    }
+
+    private void appendRequiredToLabel(TextView label) {
+        CharSequence labelText = label.getText();
+
+        SpannableString text = new SpannableString(labelText + labelRequiredAppendage);
+
+        text.setSpan(labelRequiredSpan, labelText.length(), text.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        label.setText(text);
     }
 
     private void setupRadioGroups() {
@@ -250,9 +430,11 @@ public class ShoppingCartActivity extends Activity {
                     case R.id.payment_method_cash:
                         changePaymentInfoGroup(findViewById(R.id.cash_payment_group));
                         break;
+                    /*
                     case R.id.payment_method_swish:
                         changePaymentInfoGroup(findViewById(R.id.swish_payment_group));
                         break;
+                        */
                 }
             }
         };
@@ -269,7 +451,7 @@ public class ShoppingCartActivity extends Activity {
         RadioButton[] buttons = new RadioButton[]{
                 (RadioButton) group.findViewById(R.id.payment_method_card),
                 (RadioButton) group.findViewById(R.id.payment_method_cash),
-                (RadioButton) group.findViewById(R.id.payment_method_swish),
+                //(RadioButton) group.findViewById(R.id.payment_method_swish),
         };
 
         Drawable compound;
@@ -327,18 +509,49 @@ public class ShoppingCartActivity extends Activity {
      * Updates the view which shows the selected articles.
      */
     private void updateSelectedArticlesView() {
-        ArticlesAdapter.ArticleData[] selectedArticles = shoppingCart.toArray(new ArticlesAdapter.ArticleData[0]);
+        ArticlesAdapter.ArticleData[] selectedArticles = getMappedShoppingCart();
         ArticlesAdapter adapter = new ArticlesAdapter(selectedArticles);
         adapter.setDarkMode(true);
 
         ArticlesView view = (ArticlesView) findViewById(R.id.articles);
         view.setRemovableOnClick(true);
         view.setItemAnimator(new DefaultItemAnimator());
+        view.setAutoScrollFactor(160f);
 
         view.setAdapter(adapter);
         articlesAdapter = adapter;
 
+        maybeAnimateScrollableArticles(view);
+
         updateTotalCost();
+    }
+
+    /**
+     * Indicates that the articles view is scrollable.
+     */
+    private void maybeAnimateScrollableArticles(final ArticlesView articlesView) {
+        if (!preferences.getBoolean(PreferenceKeys.SHOW_CART_SCROLL_HINT, true)) {
+            return;
+        }
+
+        preferences.edit().putBoolean(PreferenceKeys.SHOW_CART_SCROLL_HINT, false).apply();
+
+        new android.os.Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                LinearLayoutManager layoutManager = (LinearLayoutManager) articlesView.getLayoutManager();
+                if (layoutManager.findLastCompletelyVisibleItemPosition() < articlesView.getAdapter().getItemCount()) {
+                    //  Scrollable
+                    animateScrollableArticles(articlesView);
+                }
+            }
+        }, 1000);
+    }
+
+    private void animateScrollableArticles(final ArticlesView articlesView) {
+        articlesView.smoothScrollToPosition(
+                ((LinearLayoutManager) articlesView.getLayoutManager()).findLastVisibleItemPosition() + 1
+        );
     }
 
     private void updateTotalCost() {
@@ -459,6 +672,14 @@ public class ShoppingCartActivity extends Activity {
             return getString(R.string.invalid_orderer);
         }
 
+        EditText phone = (EditText) findViewById(R.id.phone_input);
+        int phoneLen = phone.getText().length();
+
+        if (phoneLen != 10 && phoneLen != 12) {
+            onFieldInvalid(phone);
+            return getString(R.string.invalid_phone);
+        }
+
         switch (paymentMethodId) {
             case R.id.payment_method_card:
 
@@ -468,10 +689,14 @@ public class ShoppingCartActivity extends Activity {
                     return getString(R.string.invalid_card_number);
                 }
 
-                EditText expire = (EditText) findViewById(R.id.expire_date_input);
-                Editable expireText = expire.getText();
-                if (expireText.length() != 5 || !expireText.toString().matches("\\d+\\/\\d+")) {
-                    onFieldInvalid(expire);
+                View expireDateInput = findViewById(R.id.expire_date_input);
+                Editable expireMonth =
+                        ((EditText) expireDateInput.findViewById(R.id.expire_month_input)).getText();
+                Editable expireYear =
+                        ((EditText) expireDateInput.findViewById(R.id.expire_year_input)).getText();
+
+                if (expireMonth.length() != 2 || expireYear.length() != 2) {
+                    onFieldInvalid(expireDateInput);
                     return getString(R.string.invalid_card_number);
                 }
 
@@ -510,7 +735,7 @@ public class ShoppingCartActivity extends Activity {
         });
     }
 
-    private void showErrorMessage(String message){
+    private void showErrorMessage(String message) {
         new AlertDialog()
                 .setHeader(getString(R.string.invalid_form_header))
                 .setText(message)
@@ -523,11 +748,20 @@ public class ShoppingCartActivity extends Activity {
      */
     public void placeOrder() {
         String billingAddress = ((EditText) findViewById(R.id.billing_address_input)).getText().toString();
-
         String floor = ((EditText) findViewById(R.id.floor_input)).getText().toString();
         String doorCode = ((EditText) findViewById(R.id.door_code_input)).getText().toString();
         String message = ((EditText) findViewById(R.id.message_input)).getText().toString();
         String fullName = ((EditText) findViewById(R.id.full_name_input)).getText().toString();
+        String phoneNum = ((EditText) findViewById(R.id.phone_input)).getText().toString();
+
+        //  Store form data
+        preferences.edit().
+                putString(PreferenceKeys.ADDRESS, billingAddress).
+                putString(PreferenceKeys.FLOOR, floor).
+                putString(PreferenceKeys.DOOR_CODE, doorCode).
+                putString(PreferenceKeys.FULL_NAME, fullName).
+                putString(PreferenceKeys.PHONE_NUM, phoneNum).
+                apply();
 
         RadioGroup paymentMethods = (RadioGroup) findViewById(R.id.payment_methods);
         int paymentMethodId = paymentMethods.getCheckedRadioButtonId();
@@ -543,6 +777,7 @@ public class ShoppingCartActivity extends Activity {
         postBuilder.append("&orderer=").append(BackendCom.encode(fullName));
         postBuilder.append("&cart_items=").append(items);
         postBuilder.append("&postal_code=").append(postalCode);
+        postBuilder.append("&phone_num=").append(BackendCom.encode(phoneNum));
 
         if (floor.length() > 0) {
             postBuilder.append("&floor=").append(floor);
@@ -554,6 +789,8 @@ public class ShoppingCartActivity extends Activity {
         if (message.length() > 0) {
             postBuilder.append("&message=").append(BackendCom.encode(message));
         }
+
+        placeOrderTriesRemaining = placeOrderTries;
 
         if (paymentMethod.contentEquals("card")) {
             submitCardPaymentWithViews(postBuilder.toString());
@@ -569,16 +806,23 @@ public class ShoppingCartActivity extends Activity {
         View cardGroup = findViewById(R.id.card_payment_group);
 
         EditText cardNumberInput = (EditText) cardGroup.findViewById(R.id.card_number_input);
-        EditText expireInput = (EditText) cardGroup.findViewById(R.id.expire_date_input);
+        View expireInput = cardGroup.findViewById(R.id.expire_date_input);
         EditText cvcInput = (EditText) cardGroup.findViewById(R.id.cvc_input);
 
-        String expireString = expireInput.getText().toString();
-        int expireDelimiterIndex = expireString.indexOf('/');
+        int expireMonth = Integer.parseInt(
+                ((EditText) expireInput.findViewById(R.id.expire_month_input)).getText().toString()
+        );
+        int expireYear = Integer.parseInt(
+                ((EditText) expireInput.findViewById(R.id.expire_year_input)).getText().toString()
+        );
 
-        int expireMonth = Integer.parseInt(expireString.substring(0, expireDelimiterIndex));
-        int expireYear = Integer.parseInt(expireString.substring(expireDelimiterIndex + 1));
-
-        submitCardPayment(cardNumberInput.getText().toString(), expireMonth, expireYear, cvcInput.getText().toString(), orderPostData);
+        submitCardPayment(
+                cardNumberInput.getText().toString(),
+                expireMonth,
+                expireYear,
+                cvcInput.getText().toString(),
+                orderPostData
+        );
     }
 
     private void submitCardPayment(String cardNumber, int expireMonth, int expireYear, String cardCvc, final String orderPostData) {
@@ -589,6 +833,8 @@ public class ShoppingCartActivity extends Activity {
             return;
         }
 
+        final String cardDetails = cardNumber + ';' + expireMonth + '/' + expireYear;
+
         Stripe stripe = new Stripe(this, "pk_test_pUCEDa47lAxtjphvdwdVT7j2");
         stripe.createToken(card, new TokenCallback() {
             @Override
@@ -598,12 +844,17 @@ public class ShoppingCartActivity extends Activity {
 
             @Override
             public void onSuccess(Token token) {
+                //  Store card data
+                preferences.edit()
+                        .putString(PreferenceKeys.CARD_NUMBER, Encryption.encrypt(cardDetails))
+                        .apply();
+
                 processCardPayment(token, orderPostData);
             }
         });
     }
 
-    private void showLoading(){
+    private void showLoading() {
         View view = loadingView;
         view.setAlpha(0);
         view.setVisibility(View.VISIBLE);
@@ -613,11 +864,11 @@ public class ShoppingCartActivity extends Activity {
                 .start();
     }
 
-    private void hideLoading(){
+    private void hideLoading() {
         View view = loadingView;
         view.animate()
                 .alpha(0)
-                .setListener(new AnimatorAdapter(){
+                .setListener(new AnimatorAdapter() {
                     @Override
                     public void onAnimationEnd(Animator animator) {
                         loadingView.setVisibility(View.GONE);
@@ -670,7 +921,12 @@ public class ShoppingCartActivity extends Activity {
             if (status == ResponseCodes.SUCCESS) {
                 onOrderPlaced(responseObj.getInt("order_id"));
             } else if (status == ResponseCodes.FAILED) {
-                onPlaceOrderFailed(responseObj.has("message") ? responseObj.getString("message") : null);
+                if (placeOrderTriesRemaining-- > 0) {
+                    //  Retry
+                    placeOrder();
+                } else {
+                    onPlaceOrderFailed(responseObj.has("message") ? responseObj.getString("message") : null);
+                }
             }
 
         } catch (JSONException ex) {
@@ -698,7 +954,11 @@ public class ShoppingCartActivity extends Activity {
      * @param orderId
      */
     private void onOrderPlaced(int orderId) {
+        //  Clear cart
+        ShoppingCartActivity.shoppingCart.clear();
+
         Intent i = new Intent(this, PostOrderActivity.class);
+        setLastOrderId(orderId);
         i.putExtra("order_id", orderId);
         startActivity(i);
         finish();
@@ -715,8 +975,9 @@ public class ShoppingCartActivity extends Activity {
             default:
             case R.id.payment_method_cash:
                 return "cash";
-            case R.id.payment_method_swish:
+            /* case R.id.payment_method_swish:
                 return "swish";
+                */
         }
     }
 
@@ -729,8 +990,8 @@ public class ShoppingCartActivity extends Activity {
     }
 
     public interface ShoppingCartListener {
-        public void onItemAdded(ArticlesAdapter.ArticleData item);
+        void onItemAdded(ArticlesAdapter.ArticleData item);
 
-        public void onItemRemoved(ArticlesAdapter.ArticleData item);
+        void onItemRemoved(ArticlesAdapter.ArticleData item);
     }
 }

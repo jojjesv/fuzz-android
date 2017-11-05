@@ -18,6 +18,11 @@ public class ArticleView extends LinearLayout {
      */
     private boolean isPickedUp;
 
+    /**
+     * Milliseconds since last tap, for removing purposes.
+     */
+    public long millisSinceTap;
+
     public ArticleView(Context context, @Nullable AttributeSet attrs) {
         super(context, attrs);
     }

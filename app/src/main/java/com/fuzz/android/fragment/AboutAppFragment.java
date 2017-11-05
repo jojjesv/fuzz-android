@@ -1,7 +1,5 @@
 package com.fuzz.android.fragment;
 
-import android.app.Dialog;
-import android.app.DialogFragment;
 import android.content.Context;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -10,8 +8,6 @@ import android.support.annotation.Nullable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewParent;
-import android.view.Window;
 import android.widget.TextView;
 
 import com.fuzz.android.R;
@@ -52,7 +48,7 @@ public class AboutAppFragment extends BaseDialogFragment {
     private void setupView(View v) {
         ((TextView) v.findViewById(R.id.company_name)).setText(companyName);
         ((TextView) v.findViewById(R.id.phone_number)).setText(companyPhoneNum);
-        ((TextView) v.findViewById(R.id.address)).setText(companyAddress);
+        ((TextView) v.findViewById(R.id.label_address)).setText(companyAddress);
         ((TextView) v.findViewById(R.id.email)).setText(companyEmail);
 
         //  Close button

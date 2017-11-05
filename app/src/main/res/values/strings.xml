@@ -11,13 +11,14 @@
         <item>Botar sockersjuka</item>
         <item>Ordnar första hjälpen mot sockersug</item>
         <item>Skördar snacks</item>
+        <item>Jagar gummibjörnar på rymmen</item>
     </string-array>
+    <string name="post_order_thanks">Tack för ditt köp!\u0020</string> <!-- Space for font issue -->
     <string name="_continue">Fortsätt</string>
     <string name="about_app">Om Fuzz</string>
     <string name="and">och</string>
-    <string name="article_name_quantity">%1$s %2$d-pack</string>
-    <string name="cart_cost_appendage">\u0020/ %s kr</string>
-    <string name="cart_items">%d</string>
+    <string name="article_name_quantity">%1$s %2$d st.</string>
+    <string name="cart_cost">%s kr</string>
     <string name="close">Stäng</string>
     <string name="contents">Innehåller %s</string>
     <string name="cost">%s kr</string>
@@ -28,10 +29,27 @@
     <string name="articles_fetch_fail">Sortimentet kunde inte hämtas</string>
     <string name="feedback_thanks">Tack för din feedback!</string>
     <string name="input_postal_code">Skriv in ditt postnummer för\natt komma igång.</string>
+
+    <string name="undeliverable_datetime_header">Otillgänglig utkörning</string>
+    <string name="undeliverable_datetime">Utkörningar kör inte just nu. Beställningar kommer att levereras %s.</string>
+    <string name="undeliverable_datetime_day">på %s</string>
+    <string name="undeliverable_datetime_time">runt %s</string>
+
+    <string-array name="days_of_week">
+        <item>söndag</item>
+        <item>måndag</item>
+        <item>tisdag</item>
+        <item>onsdag</item>
+        <item>torsdag</item>
+        <item>fredag</item>
+        <item>lördag</item>
+        <item>söndag</item>
+    </string-array>
+
     <string name="new_badge">Nyhet</string>
     <string name="ok">Ok</string>
     <string name="popular_this_week">Populärt denna vecka</string>
-    <string name="quantity">%dp</string>
+    <string name="quantity">%d st</string>
     <string name="send_feedback">Skicka</string>
     <string name="shopping_cart_empty">Kundvagnen är tom. Dra artiklar till vagnen för att lägga till dem.</string>
     <string name="shopping_cart_empty_header">Kundvagn</string>
@@ -39,5 +57,7 @@
     <string name="swipe_categories">Dra sidleds för att få fram\nkategorier.</string>
     <string name="swipe_categories_hide">För tillbaka dem för att återvända.</string>
     <string name="version">Version %s</string>
-    <string name="welcome">Hejsan!</string>
+    <string name="welcome"><b>Your</b> candy delivered by <b>us</b></string>
+    <string name="network_error_header">Nätverksfel</string>
+    <string name="network_error_msg">Fuzz kan inte nås just nu.</string>
 </resources>

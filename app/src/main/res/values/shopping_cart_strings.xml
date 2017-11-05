@@ -5,12 +5,14 @@
     <string name="floor">Våning</string>
     <string name="house_number">Husnmr.</string>
     <string name="message">Meddelande</string>
+    <string name="phone">Telefonnummer</string>
     <string name="delivery_info">Leveransinfo</string>
     <string name="payment_method">Betalningsmetod</string>
     <string name="payment_option_card">Kort</string>
     <string name="payment_option_cash">Kontant</string>
     <string name="payment_option_swish">Swish</string>
-    <string name="place_order">Placera beställning</string>
+    <string name="leave_post_order">Dubbeltryck för att stänga fönstret.</string>
+    <string name="place_order">Beställ</string>
     <string name="cost_add_articles">Kundvagn</string>
     <string name="cost_add_delivery">Utkörning</string>
     <string name="cost_add_below_min">Mellanskillnad (minst %skr)</string>
@@ -24,6 +26,7 @@
     <string name="swish_recipient">Telefonnummer</string>
     <string name="open_swish_app">Öppna Swish-appen</string>
     <string name="swish_app_not_found">Swish appen hittades inte</string>
+    <string name="label_required_appendage">\u0020*</string>
     <string name="something_wrong">Något gick fel</string>
     <string name="invalid_card">Kontrollera dina kortuppgifter.</string>
     <string name="generic_card_error">Kunde inte debitera det angivna kortet.</string>
@@ -33,4 +36,10 @@
     <string name="invalid_card_number">Kontrollera ditt kortnummer.</string>
     <string name="invalid_card_expire">Kontrollera ditt korts utgångsdatum.</string>
     <string name="invalid_card_cvc">Kontrollera ditt korts CVC-kod.</string>
+    <string name="invalid_phone">Ange ditt telefonnummer.</string>
+    <string name="double_tap_remove">Dubbeltryck för att ta bort.</string>
+    <string name="cart_now_empty">Kundvagnen är nu tom.</string>
+    <string name="month_hint">MM</string>
+    <string name="year_hint">ÅÅ</string>
+    <string name="card_expire_delimiter">/</string>
 </resources>

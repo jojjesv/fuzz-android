@@ -1,28 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <dimen name="action_bar_btn_extrude_height">160dp</dimen> <!-- Extends the button's bounds -->
+    <dimen name="action_bar_btn_extrude_width">52dp</dimen> <!-- Extends the button's bounds -->
     <dimen name="action_bar_btn_size">48dp</dimen>
     <dimen name="action_bar_height">64dp</dimen>
     <dimen name="activity_horizontal_margin">16dp</dimen>
-    <dimen name="article_item_height">140dp</dimen>
     <dimen name="activity_padding_horizontal">16dp</dimen>
     <dimen name="activity_padding_vertical">16dp</dimen>
     <dimen name="activity_vertical_margin">16dp</dimen>
     <dimen name="article_image_size">64dp</dimen>
+    <dimen name="article_image_radius">12dp</dimen>
     <dimen name="article_image_size_large">70dp</dimen>
-    <dimen name="article_item_width">164dp</dimen> <!-- Article item width if in linear layout manager -->
+    <dimen name="article_item_height">140dp</dimen>
+    <dimen name="article_item_width">128dp</dimen> <!-- Article item width if in linear layout manager -->
     <dimen name="article_padding">12dp</dimen>
     <dimen name="articles_scroll_threshold">8dp</dimen> <!-- Threshold to hide header -->
+    <dimen name="background_circle_1_y">-64dp</dimen>
+    <dimen name="background_circle_1_size">450dp</dimen>
+    <dimen name="background_circle_2_size">180dp</dimen>
     <dimen name="categories_swipe_distance">128dp</dimen>
     <dimen name="category_touch_x">120dp</dimen>
     <dimen name="category_translation_offset">24dp</dimen> <!-- Translation offset which category child lags behind previous sibling -->
+    <dimen name="default_elevation">4dp</dimen>
     <dimen name="dialog_height">280dp</dimen>
-    <dimen name="dialog_width">280dp</dimen>
     <dimen name="dialog_padding">32dp</dimen>
+    <dimen name="dialog_width">280dp</dimen>
     <dimen name="eta_timer_inner_radius">64dp</dimen>
     <dimen name="eta_timer_size">240dp</dimen>
     <dimen name="field_separator">24dp</dimen>
+    <dimen name="payment_method_height">64dp</dimen>
     <dimen name="scroll_threshold">3dp</dimen>
     <dimen name="small_margin">6dp</dimen>
-    <dimen name="payment_method_height">64dp</dimen>
-    <dimen name="default_elevation">4dp</dimen>
+    <dimen name="post_order_candy_translation">64dp</dimen>
+    <dimen name="min_height_PC_logo_visible">360dp</dimen> <!-- Minimum screen height for postal code logo to be visible -->
 </resources>

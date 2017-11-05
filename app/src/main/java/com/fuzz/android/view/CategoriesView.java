@@ -29,6 +29,12 @@ public class CategoriesView extends ListView {
     private int[] backgroundColor;
     private ArticlesContainerView container;
     private boolean didScrollSinceTouchDown;
+    private TransitionListener transitionListener;
+    /**
+     * Whether to become invisible for a frame.
+     */
+    private boolean postVisible = true;
+    private int postVisibleCounter;
 
     public CategoriesView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -40,11 +46,22 @@ public class CategoriesView extends ListView {
         onItemsHidden();
 
         int bgColor = res.getColor(R.color.light_blue);
-        backgroundColor = new int[] {
+        backgroundColor = new int[]{
                 Color.red(bgColor),
                 Color.green(bgColor),
                 Color.blue(bgColor)
         };
+
+        //  Invisible while children has incorrect positioning
+        setAlpha(0);
+    }
+
+    public TransitionListener getTransitionListener() {
+        return transitionListener;
+    }
+
+    public void setTransitionListener(TransitionListener transitionListener) {
+        this.transitionListener = transitionListener;
     }
 
     @Override
@@ -59,6 +76,7 @@ public class CategoriesView extends ListView {
 
     public void setContainer(ArticlesContainerView container) {
         this.container = container;
+        container.setCategoriesView(this);
     }
 
     public float getTransitionValue() {
@@ -71,6 +89,14 @@ public class CategoriesView extends ListView {
      * @param val Non-interpolated transition fraction.
      */
     public void setTransitionValue(float val) {
+        if (postVisible) {
+            postVisibleCounter++;
+            if (postVisibleCounter == 3) {
+                setAlpha(1);
+                postVisible = false;
+            }
+        }
+
         if (getVisibility() != VISIBLE) {
             setVisibility(VISIBLE);
         }
@@ -87,8 +113,17 @@ public class CategoriesView extends ListView {
             child.setTranslationX(translationX);
         }
 
-        int newColor = Color.argb((int)(180 * val), backgroundColor[0], backgroundColor[1], backgroundColor[2]);
+        int newColor = Color.argb((int) (180 * val), backgroundColor[0], backgroundColor[1], backgroundColor[2]);
         setBackgroundColor(newColor);
+
+        if (isEnabled()) {
+            //  Disable scrolling
+            setEnabled(false);
+        }
+
+        if (transitionListener != null) {
+            transitionListener.onValueUpdated(val);
+        }
     }
 
     @Override
@@ -164,5 +199,11 @@ public class CategoriesView extends ListView {
     }
 
     private void onItemsShown() {
+        //  Enable scrolling
+        setEnabled(true);
+    }
+
+    public interface TransitionListener {
+        void onValueUpdated(float newVal);
     }
 }

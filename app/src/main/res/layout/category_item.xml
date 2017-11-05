@@ -4,18 +4,17 @@
     android:layout_height="wrap_content"
     android:clipChildren="false"
     android:clipToPadding="false"
-    android:paddingLeft="8dp"
-    android:paddingTop="8dp">
+    android:paddingLeft="12dp"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
 
-    <LinearLayout
+    <com.fuzz.android.view.CategoryItemView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@drawable/rect_oval"
-        android:backgroundTint="@color/black"
-        android:paddingBottom="8dp"
-        android:paddingLeft="15dp"
-        android:paddingRight="14dp"
-        android:paddingTop="8dp"
+        android:paddingBottom="9dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="15dp"
+        android:paddingTop="9dp"
         android:stateListAnimator="@animator/stateanim_default">
 
         <ImageView
@@ -23,6 +22,7 @@
             android:visibility="gone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
             android:layout_marginRight="3dp"
             android:src="@drawable/ic_remove_24dp" />
 
@@ -33,6 +33,6 @@
             android:clickable="false"
             android:text="Test"
             android:textColor="@color/white"
-            android:textSize="20sp" />
-    </LinearLayout>
+            android:textSize="24sp" />
+    </com.fuzz.android.view.CategoryItemView>
 </FrameLayout>

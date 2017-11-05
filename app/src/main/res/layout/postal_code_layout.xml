@@ -5,38 +5,20 @@
     android:clipChildren="false"
     android:orientation="vertical">
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <com.fuzz.android.view.HeaderTextView
+        android:id="@+id/subheader"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="64dp"
-        android:orientation="vertical">
-
-        <com.fuzz.android.view.HeaderTextView
-            android:id="@+id/header"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="@string/welcome"
-            android:textColor="@color/white"
-            android:textSize="48sp" />
-
-        <TextView
-            android:id="@+id/subheader"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/header"
-            android:layout_gravity="center"
-            android:layout_marginTop="24dp"
-            android:background="@drawable/pcode_subheader_bg"
-            android:gravity="center"
-            android:paddingBottom="12dp"
-            android:paddingLeft="16dp"
-            android:paddingRight="16dp"
-            android:paddingTop="12dp"
-            android:text="@string/input_postal_code"
-            android:textColor="@color/white"
-            android:textSize="18sp" />
-    </LinearLayout>
+        android:layout_gravity="center"
+        android:layout_marginBottom="96dp"
+        android:gravity="center"
+        android:paddingBottom="12dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingTop="12dp"
+        android:text="@string/input_postal_code"
+        android:textColor="@color/white"
+        android:textSize="24sp" />
 
     <EditText
         android:id="@+id/text_input"
@@ -46,13 +28,11 @@
         android:layout_gravity="center"
         android:layout_marginTop="24dp"
         android:drawableLeft="@drawable/ic_location_48dp"
-        android:drawableTint="@color/red"
         android:gravity="center"
         android:inputType="number"
         android:maxLength="5"
         android:maxLines="1"
         android:paddingRight="48dp"
-        android:singleLine="true"
         android:textSize="36sp" />
 
     <include
@@ -66,23 +46,23 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center|bottom"
-        android:clipChildren="false"
-        android:layout_marginBottom="128dp">
+        android:layout_marginBottom="128dp"
+        android:clipChildren="false">
 
         <com.fuzz.android.view.LoadingIndicator
             android:id="@+id/loading"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="-36dp"
             android:src="@drawable/ic_logo_white_36dp"
-            android:visibility="gone"
-            android:layout_marginLeft="-36dp"/>
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/submit"
             style="@style/ButtonContainer"
-            android:background="@drawable/button_gradient_bg"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/button_gradient_bg"
             android:onClick="submitPostalCode">
 
             <ImageView
